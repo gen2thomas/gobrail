@@ -1,0 +1,28 @@
+@startuml
+cloud "UI" {
+  [CLI or Hardware switch with additional software]
+}
+
+package "rails" {
+  [rails devices]
+}
+
+package "boardsapi" {
+  [boards managment]
+}
+
+package "board" {
+  [board driver]
+}
+
+package "gobot" {
+  [drivers]
+  [platforms]
+}
+
+[CLI or Hardware switch with additional software] --> [rails devices]
+[rails devices] --> [boards managment]
+[boards managment] --> [board driver]
+[board driver] --> [platforms]
+[board driver] --> [drivers]
+@enduml

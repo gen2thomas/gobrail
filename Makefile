@@ -13,3 +13,7 @@ test:
 # Correct format errors
 fmt:
 	go fmt ./...
+
+# goplantuml must be installed first with "GO111MODULE=off" prefix
+plantuml:
+	goplantuml -recursive -hide-fields -hide-methods ./ > docs/new.puml
