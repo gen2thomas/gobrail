@@ -9,7 +9,7 @@ package board
  * Called from: Modellbahn.cpp (outdated)
  * Call       : some functions from i2c (PCA9501), digispark
  *
- * 9501: 
+ * 9501:
  * - 8 GPIO, 0..3 amplified and negotiated with IRLZ34N, 4..7 for max. 20mA (see docs/images)
  * - Dummy address for EEPROM write is set to 0x00
  *
@@ -23,8 +23,8 @@ package board
  */
 
 import (
-	"time"
 	"fmt"
+	"time"
 
 	"gobot.io/x/gobot/drivers/i2c"
 )
@@ -46,7 +46,7 @@ var boardPinsDefault = boardPinsMap{
 	7:  {chipId: chipId, chipPin: 7, pinType: Binary},
 	8:  {chipId: chipId, chipPin: 0x01, pinType: Memory},
 	9:  {chipId: chipId, chipPin: 0x02, pinType: Memory},
-  10: {chipId: chipId, chipPin: 0x02, pinType: Memory},
+	10: {chipId: chipId, chipPin: 0x02, pinType: Memory},
 	11: {chipId: chipId, chipPin: 0x03, pinType: Memory},
 	12: {chipId: chipId, chipPin: 0x04, pinType: Memory},
 	13: {chipId: chipId, chipPin: 0x05, pinType: Memory},
@@ -110,7 +110,7 @@ func (b *Board) ReadBoardConfig() (err error) {
 func (b *Board) writeEEPROM(address uint8, val uint8) (err error) {
 	var pin *boardPin
 	var ok bool
-	if pin, ok = b.pins[address]; !ok{
+	if pin, ok = b.pins[address]; !ok {
 		err = fmt.Errorf("There is no pin with key '%d' for writeEEPROM", address)
 		return
 	}
@@ -130,7 +130,7 @@ func (b *Board) writeEEPROM(address uint8, val uint8) (err error) {
 func (b *Board) readEEPROM(address uint8) (val uint8, err error) {
 	var pin *boardPin
 	var ok bool
-	if pin, ok = b.pins[address]; !ok{
+	if pin, ok = b.pins[address]; !ok {
 		err = fmt.Errorf("There is no pin with key '%d' foir readEEPROM", address)
 		return
 	}

@@ -21,7 +21,7 @@ This is prototype software. It is a long way to make it work in real model railr
 
 ## TODO's
 
-* documentation for "board" and planned software architecture
+* linting "board"
 * tests for "board"
 * add negotiation possibility
 * add next architecture levels (boardsapi, rail)

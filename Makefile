@@ -1,4 +1,4 @@
-.PHONY: run test fmt
+.PHONY: run test style
 
 excluding_vendor := $(shell go list ./... | grep -v /vendor/)
 
@@ -10,9 +10,10 @@ run:
 test:
 	go test -v $(excluding_vendor)
 
-# Correct format errors
-fmt:
+# Correct format errors amd check linting
+style:
 	go fmt ./...
+	golint ./...
 
 # goplantuml must be installed first with "GO111MODULE=off" prefix
 plantuml:

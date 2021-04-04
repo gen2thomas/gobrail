@@ -26,7 +26,8 @@ type BoardRecipe struct {
 }
 
 const boardId = "IO_Mem_PCA9501"
-var boardRecipePca9501 = BoardRecipe {
+
+var boardRecipePca9501 = BoardRecipe{
 	Name:        boardId,
 	ChipDevAddr: 0x04,
 }
@@ -53,11 +54,11 @@ func main() {
 				time.Sleep(2000 * time.Millisecond)
 
 				fmt.Printf("\n------ Now running ------\n")
-				firstLoop = false				
-			}else{
+				firstLoop = false
+			} else {
 				board.SetValue(pin, value)
 				pin++
-				if pin > 7{
+				if pin > 7 {
 					pin = 0
 					value++
 				}

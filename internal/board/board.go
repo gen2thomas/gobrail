@@ -95,24 +95,6 @@ type Board struct {
 	pins  boardPinsMap
 }
 
-var chipEmpty = chip{
-	chipType: NoChip,
-	address:  0xFF,
-	device:   nil,
-}
-
-// an empty board
-var boardEmpty = Board{
-	name:  "EmptyBoard",
-	chips: map[string]*chip{"EmptyChip": &chipEmpty},
-	pins: boardPinsMap{
-		0: {chipId: "EmptyChip", chipPin: 0, pinType: Binary},
-		1: {chipId: "EmptyChip", chipPin: 1, pinType: Binary},
-		2: {chipId: "EmptyChip", chipPin: 2, pinType: Binary},
-		3: {chipId: "EmptyChip", chipPin: 3, pinType: Binary},
-	},
-}
-
 func (b *Board) Devices() []gobot.Device {
 	var allDevices gobot.Devices
 	for _, chip := range b.chips {
