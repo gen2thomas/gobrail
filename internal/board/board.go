@@ -4,6 +4,18 @@ package board
 //
 // in general a pin is a connection to a usable part of the board or chip
 // therefore this is also the memory (pin equals the address in memory)
+//
+// Functions:
+// + most functions ready for each type of board (at the moment only typ2)
+// + structure for each chip to configure
+// + structure for each io at board to configure
+// + set/reset all
+// + set/reset one
+//
+// TODO:
+// - each pin is analog IO with min/max value (binary can be interpreted as val=max=1/val=min=0, negotiation)
+// - search for main address of board (configmode)
+// - use list of already used i2cdevice addresses to exclude from search (configmode)
 
 import (
 	"fmt"
