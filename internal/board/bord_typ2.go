@@ -32,43 +32,43 @@ import (
 const boardTyp2IoNrMax = 7 //0..7
 const chipsAtBoardTyp2Max = 1
 const lastEepromAddressForConfigmode = uint8(0xFF)
-const chipId = "PCA9501.GPIO.Mem"
+const chipID = "PCA9501.GPIO.Mem"
 
 //this is the default io configuration of this board
-var boardPinsDefault = boardPinsMap{
-	0:  {chipId: chipId, chipPin: 0, pinType: Binary},
-	1:  {chipId: chipId, chipPin: 1, pinType: Binary},
-	2:  {chipId: chipId, chipPin: 2, pinType: Binary},
-	3:  {chipId: chipId, chipPin: 3, pinType: Binary},
-	4:  {chipId: chipId, chipPin: 4, pinType: Binary},
-	5:  {chipId: chipId, chipPin: 5, pinType: Binary},
-	6:  {chipId: chipId, chipPin: 6, pinType: Binary},
-	7:  {chipId: chipId, chipPin: 7, pinType: Binary},
-	8:  {chipId: chipId, chipPin: 0x01, pinType: Memory},
-	9:  {chipId: chipId, chipPin: 0x02, pinType: Memory},
-	10: {chipId: chipId, chipPin: 0x02, pinType: Memory},
-	11: {chipId: chipId, chipPin: 0x03, pinType: Memory},
-	12: {chipId: chipId, chipPin: 0x04, pinType: Memory},
-	13: {chipId: chipId, chipPin: 0x05, pinType: Memory},
-	14: {chipId: chipId, chipPin: 0x06, pinType: Memory},
-	15: {chipId: chipId, chipPin: 0x07, pinType: Memory},
+var boardPinsDefault = PinsMap{
+	0:  {chipID: chipID, chipPin: 0, pinType: Binary},
+	1:  {chipID: chipID, chipPin: 1, pinType: Binary},
+	2:  {chipID: chipID, chipPin: 2, pinType: Binary},
+	3:  {chipID: chipID, chipPin: 3, pinType: Binary},
+	4:  {chipID: chipID, chipPin: 4, pinType: Binary},
+	5:  {chipID: chipID, chipPin: 5, pinType: Binary},
+	6:  {chipID: chipID, chipPin: 6, pinType: Binary},
+	7:  {chipID: chipID, chipPin: 7, pinType: Binary},
+	8:  {chipID: chipID, chipPin: 0x01, pinType: Memory},
+	9:  {chipID: chipID, chipPin: 0x02, pinType: Memory},
+	10: {chipID: chipID, chipPin: 0x02, pinType: Memory},
+	11: {chipID: chipID, chipPin: 0x03, pinType: Memory},
+	12: {chipID: chipID, chipPin: 0x04, pinType: Memory},
+	13: {chipID: chipID, chipPin: 0x05, pinType: Memory},
+	14: {chipID: chipID, chipPin: 0x06, pinType: Memory},
+	15: {chipID: chipID, chipPin: 0x07, pinType: Memory},
 }
 
-// NewBoard creates a new board of typ 2
+// NewBoardTyp2 creates a new board of typ 2
 func NewBoardTyp2(adaptor i2c.Connector, address uint8, name string) *Board {
 	p := &Board{
 		name: name,
 		pins: boardPinsDefault,
-		chips: map[string]*chip{chipId: {
-			chipType: PCA9501,
-			address:  address,
-			device:   i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
+		chips: map[string]*chip{chipID: {
+			address: address,
+			device:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
 		}},
 	}
 
 	return p
 }
 
+// WriteBoardConfig is writing the configuration to EEPROM
 func (b *Board) WriteBoardConfig() error {
 	eeaddress := lastEepromAddressForConfigmode
 	// this will only work if wc pin is high!
@@ -89,6 +89,7 @@ func (b *Board) WriteBoardConfig() error {
 	return nil
 }
 
+// ReadBoardConfig is reading the configuration from EEPROM
 func (b *Board) ReadBoardConfig() (err error) {
 	eeaddress := lastEepromAddressForConfigmode
 	// read the IO's
@@ -107,6 +108,42 @@ func (b *Board) ReadBoardConfig() (err error) {
 	return nil
 }
 
+func (b *Board) writeGPIO(boardPinNr uint8, val uint8) (err error) {
+	var pin *boardPin
+	var ok bool
+	if pin, ok = b.pins[boardPinNr]; !ok {
+		err = fmt.Errorf("There is no pin with key '%d' for writeGPIO", boardPinNr)
+		return
+	}
+	var params = map[string]interface{}{
+		"pin": pin.chipPin,
+		"val": val,
+	}
+	writeGpioCommand := b.chips[pin.chipID].device.Command("WriteGPIO")
+	result := writeGpioCommand(params).(map[string]interface{})["err"]
+	if result != nil {
+		return result.(error)
+	}
+	return
+}
+
+func (b *Board) readGPIO(boardPinNr uint8) (val uint8, err error) {
+	var pin *boardPin
+	var ok bool
+	if pin, ok = b.pins[boardPinNr]; !ok {
+		err = fmt.Errorf("There is no pin with key '%d' for readGPIO", boardPinNr)
+		return
+	}
+	params := make(map[string]interface{})
+	params["pin"] = pin.chipPin
+	readGpioCommand := b.chips[pin.chipID].device.Command("ReadGPIO")
+	result := readGpioCommand(params).(map[string]interface{})
+	if result["err"] != nil {
+		return 0, result["err"].(error)
+	}
+	return result["val"].(uint8), nil
+}
+
 func (b *Board) writeEEPROM(address uint8, val uint8) (err error) {
 	var pin *boardPin
 	var ok bool
@@ -118,7 +155,7 @@ func (b *Board) writeEEPROM(address uint8, val uint8) (err error) {
 		"address": pin.chipPin,
 		"val":     val,
 	}
-	writeMemCommand := b.chips[pin.chipId].device.Command("WriteEEPROM")
+	writeMemCommand := b.chips[pin.chipID].device.Command("WriteEEPROM")
 	result := writeMemCommand(params).(map[string]interface{})["err"]
 	time.Sleep(4 * time.Millisecond)
 	if result != nil {
@@ -131,12 +168,12 @@ func (b *Board) readEEPROM(address uint8) (val uint8, err error) {
 	var pin *boardPin
 	var ok bool
 	if pin, ok = b.pins[address]; !ok {
-		err = fmt.Errorf("There is no pin with key '%d' foir readEEPROM", address)
+		err = fmt.Errorf("There is no pin with key '%d' for readEEPROM", address)
 		return
 	}
 	params := make(map[string]interface{})
 	params["address"] = pin.chipPin
-	readMemCommand := b.chips[pin.chipId].device.Command("ReadEEPROM")
+	readMemCommand := b.chips[pin.chipID].device.Command("ReadEEPROM")
 	result := readMemCommand(params).(map[string]interface{})
 	time.Sleep(4 * time.Millisecond)
 	if result["err"] != nil {

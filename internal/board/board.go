@@ -23,78 +23,69 @@ import (
 	"gobot.io/x/gobot"
 )
 
-type ChipType uint8
-
-const (
-	NoChip ChipType = iota
-	PCA9501
-	PCA9533
-)
-
+// PinType is used to type safe the constants
 type PinType uint8
 
 const (
+	// Binary is used for r/w "0","1" on GPIO
 	Binary PinType = iota
+	// Analog is used for r/w 0-255 on analog outputs or PWM
 	Analog
+	// Memory is used for r/w to EEPROM
 	Memory
 )
 
-type PinChangeType uint8
-
-const (
-	Set PinChangeType = iota
-	Reset
-	Toggle
-	Blink0
-	Blink1
-)
-
+// ChipOperations is an interface for interact with gobot driver for chip
 type ChipOperations interface {
 	gobot.Driver
-	WriteGPIO(pin uint8, val uint8) (err error)
-	ReadGPIO(pin uint8) (val uint8, err error)
 	Command(string) (command func(map[string]interface{}) interface{})
 }
 
+// ConfigurationOperations is an interface for interact with configuration part
 type ConfigurationOperations interface {
 	WriteBoardConfig() (err error)
 	ReadBoardConfig() (err error)
 	ShowBoardConfig()
 }
 
-type BoardOperations interface {
+// DeviceOperations is an interface for interact with underlying device
+type DeviceOperations interface {
 	ConfigurationOperations
 	ReadValue(boardPinNr uint8) (uint8, error)
 	SetValue(boardPinNr uint8, value uint8) (err error)
 	SetAllIoPins() (err error)
 	ResetAllIoPins() (err error)
+	writeGPIO(pin uint8, val uint8) (err error)
+	readGPIO(pin uint8) (val uint8, err error)
 	writeEEPROM(address uint8, val uint8) (err error)
 	readEEPROM(address uint8) (val uint8, err error)
 }
 
 type chip struct {
-	chipType ChipType
-	address  uint8
-	device   ChipOperations
+	address uint8
+	device  ChipOperations
 }
 
 type boardPin struct {
 	//id to chiplist
-	chipId string
+	chipID string
 	//io port of the chip
 	chipPin uint8
 	// type of the io pin
 	pinType PinType
 }
 
-type boardPinsMap map[uint8]*boardPin
+// PinsMap is a map of all pins on a board
+type PinsMap map[uint8]*boardPin
 
+// Board is the configuration of a board
 type Board struct {
 	name  string
 	chips map[string]*chip
-	pins  boardPinsMap
+	pins  PinsMap
 }
 
+// Devices gets all devices of the board
 func (b *Board) Devices() []gobot.Device {
 	var allDevices gobot.Devices
 	for _, chip := range b.chips {
@@ -103,8 +94,9 @@ func (b *Board) Devices() []gobot.Device {
 	return allDevices
 }
 
-func (b *Board) PinsOfType(pinType PinType) boardPinsMap {
-	pins := make(boardPinsMap)
+// PinsOfType gets all pins of board for the given type
+func (b *Board) PinsOfType(pinType PinType) PinsMap {
+	pins := make(PinsMap)
 	for idx, boardPin := range b.pins {
 		if boardPin.pinType == pinType {
 			pins[idx] = boardPin
@@ -113,6 +105,7 @@ func (b *Board) PinsOfType(pinType PinType) boardPinsMap {
 	return pins
 }
 
+// SetValue sets the given pin of board to the given value
 func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
 	//get actual device first (can be main or casc)
 	var bPin *boardPin
@@ -120,10 +113,9 @@ func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
 	if bPin, ok = b.pins[boardPinNr]; !ok {
 		err = fmt.Errorf("Pin %d not there in board %s", boardPinNr, b.name)
 	}
-	chip := b.chips[bPin.chipId]
 	switch bPin.pinType {
 	case Binary:
-		err = chip.device.WriteGPIO(bPin.chipPin, value)
+		err = b.writeGPIO(bPin.chipPin, value)
 	case Memory:
 		err = b.writeEEPROM(bPin.chipPin, value)
 	default:
@@ -132,6 +124,7 @@ func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
 	return
 }
 
+// ReadValue reads the value of the given pin of board
 func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
 	//get actual device first (can be main or casc)
 	var bPin *boardPin
@@ -139,10 +132,9 @@ func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
 	if bPin, ok = b.pins[boardPinNr]; !ok {
 		err = fmt.Errorf("Pin %d not there in board %s", boardPinNr, b.name)
 	}
-	chip := b.chips[bPin.chipId]
 	switch bPin.pinType {
 	case Binary:
-		value, err = chip.device.ReadGPIO(bPin.chipPin)
+		value, err = b.readGPIO(bPin.chipPin)
 	case Memory:
 		value, err = b.readEEPROM(bPin.chipPin)
 	default:
@@ -151,6 +143,7 @@ func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
 	return
 }
 
+// SetAllIoPins sets all pins of type "Binary" to active
 func (b *Board) SetAllIoPins() (err error) {
 	for ioNr, boardPin := range b.pins {
 		if boardPin.pinType != Binary {
@@ -164,6 +157,7 @@ func (b *Board) SetAllIoPins() (err error) {
 	return nil
 }
 
+// ResetAllIoPins sets all pins of type "Binary" to inactive
 func (b *Board) ResetAllIoPins() error {
 	for ioNr, boardPin := range b.pins {
 		if boardPin.pinType != Binary {
@@ -177,18 +171,19 @@ func (b *Board) ResetAllIoPins() error {
 	return nil
 }
 
+// ShowBoardConfig prints all information of the board
 func (b *Board) ShowBoardConfig() {
 	fmt.Printf("\n------ Show Board (%s) ------", b)
 	fmt.Printf("\n------ Chips on board ------")
-	for chipId, chip := range b.chips {
-		fmt.Printf("\nChip Id: %s", chipId)
-		fmt.Printf(", chip type: %d", chip.chipType)
+	for chipID, chip := range b.chips {
+		fmt.Printf("\nChip Id: %s", chipID)
+		fmt.Printf(", chip driver name: %s", chip.device.Name())
 		fmt.Printf(", chip address: %d", chip.address)
 	}
 	fmt.Printf("\n------ Pins on board ------")
 	for pinNr, boardPin := range b.pins {
 		fmt.Printf("\nBoard pin number: %d", pinNr)
-		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.pinType, boardPin.chipPin, boardPin.chipId)
+		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.pinType, boardPin.chipPin, boardPin.chipID)
 	}
 	fmt.Printf("\n------ Debug done ------\n")
 }

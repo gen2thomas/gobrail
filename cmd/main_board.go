@@ -20,15 +20,15 @@ import (
 //
 // It is possible to use another platform than digispark. Some has the pullup resistors already in place.
 
-type BoardRecipe struct {
+type boardRecipe struct {
 	Name        string
 	ChipDevAddr uint8
 }
 
-const boardId = "IO_Mem_PCA9501"
+const boardName = "IO_Mem_PCA9501"
 
-var boardRecipePca9501 = BoardRecipe{
-	Name:        boardId,
+var boardRecipePca9501 = boardRecipe{
+	Name:        boardName,
 	ChipDevAddr: 0x04,
 }
 
