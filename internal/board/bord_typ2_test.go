@@ -20,7 +20,7 @@ func TestNewBoardTyp2(t *testing.T) {
 	boardt2 := NewBoardTyp2(new(adaptorMock), 0x05, "TestNewBoardTyp2")
 	// assert
 	require.NotNil(boardt2)
-	assert.Equal(boardt2.name, "TestNewBoardTyp2")
+	assert.Equal("TestNewBoardTyp2", boardt2.name)
 }
 
 func (a *adaptorMock) GetConnection(address int, bus int) (device i2c.Connection, err error) { return }

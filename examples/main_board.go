@@ -1,3 +1,7 @@
+// +build example
+//
+// Do not build by default.
+
 package main
 
 import (
@@ -71,7 +75,7 @@ func main() {
 
 	robot := gobot.NewRobot("try board TYP2",
 		[]gobot.Connection{adaptor},
-		board.Devices(),
+		board.GobotDevices(),
 		work,
 	)
 

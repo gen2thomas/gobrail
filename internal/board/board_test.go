@@ -12,7 +12,7 @@ type deviceMock struct {
 	name string
 }
 
-func TestDevices(t *testing.T) {
+func TestGobotDevices(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	dev1 := &deviceMock{name: "dev1"}
@@ -30,10 +30,10 @@ func TestDevices(t *testing.T) {
 	}
 
 	// act
-	devs := testBoard.Devices()
+	devs := testBoard.GobotDevices()
 
 	// assert
-	assert.Equal(len(devs), 2)
+	assert.Equal(2, len(devs))
 	assert.Contains(devs, dev1)
 	assert.Contains(devs, dev2)
 }
@@ -60,9 +60,9 @@ func TestPinsOfType(t *testing.T) {
 	pinsMem := testBoard.PinsOfType(Memory)
 
 	// assert
-	assert.Equal(len(pinsBin), 3)
-	assert.Equal(len(pinsAna), 2)
-	assert.Equal(len(pinsMem), 1)
+	assert.Equal(3, len(pinsBin))
+	assert.Equal(2, len(pinsAna))
+	assert.Equal(1, len(pinsMem))
 }
 
 func TestGetBoardPin(t *testing.T) {
@@ -106,7 +106,7 @@ func TestGetDriver(t *testing.T) {
 	// assert
 	require.Nil(err)
 	assert.NotNil(driver)
-	assert.Equal(driver.Name(), "Testdriver")
+	assert.Equal("Testdriver", driver.Name())
 }
 
 func TestGetDriverNotThereGetsError(t *testing.T) {

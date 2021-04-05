@@ -7,8 +7,8 @@ package board
 //
 //      Author: g2t
 //  Created on: 28.03.2021
-// Called from: Modellbahn.cpp (outdated)
-// Call       : some functions from gobot-adaptor (e,g, digispark)
+// Called from: boardsapi
+// Call       : some functions from gobot-adaptor (e.g. digispark)
 //
 // Functions:
 // + most functions ready for each type of board (at the moment only typ2)
@@ -85,8 +85,8 @@ type Board struct {
 	pins  PinsMap
 }
 
-// Devices gets all devices of the board
-func (b *Board) Devices() []gobot.Device {
+// GobotDevices gets all gobot devices of the board
+func (b *Board) GobotDevices() []gobot.Device {
 	var allDevices gobot.Devices
 	for _, chip := range b.chips {
 		allDevices = append(allDevices, chip.driver)

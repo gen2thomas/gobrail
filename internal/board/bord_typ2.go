@@ -6,7 +6,7 @@ package board
 //  Created on: 01.06.2009 (in C++)
 //    Modified: 19.04.2013
 //   in golang: 28.03.2021
-// Called from: Modellbahn.cpp (outdated)
+// Called from: boardsapi
 // Call       : some functions from gobot-i2c (PCA9501)
 //
 // 9501:
@@ -14,7 +14,8 @@ package board
 // - Dummy address for EEPROM write is set to 0x00
 //
 // Functions:
-// + read eeprom at board
+// + read/write eeprom at board
+// + read/write GPIO at board
 //
 // TODO:
 // - provide EEPROM as separat "chip" of this board
