@@ -4,15 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gobot.io/x/gobot"
 )
 
 type deviceMock struct {
-	name       string
-	connection gobot.Connection
-}
-
-type adaptorMock struct {
 	name string
 }
 
@@ -25,10 +21,10 @@ func TestDevices(t *testing.T) {
 	testBoard := &Board{
 		chips: map[string]*chip{
 			"testchip1": {
-				device: dev1,
+				driver: dev1,
 			},
 			"testchip2": {
-				device: dev2,
+				driver: dev2,
 			},
 		},
 	}
@@ -69,16 +65,72 @@ func TestPinsOfType(t *testing.T) {
 	assert.Equal(len(pinsMem), 1)
 }
 
+func TestGetBoardPin(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	boardPins := PinsMap{4: {}}
+	testBoard := &Board{pins: boardPins}
+	// act
+	pin, err := testBoard.getBoardPin(4)
+	// assert
+	require.Nil(err)
+	assert.NotNil(pin)
+}
+
+func TestGetBoardPinNotThereGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	boardPins := PinsMap{4: {}}
+	testBoard := &Board{pins: boardPins}
+	// act
+	pin, err := testBoard.getBoardPin(3)
+	// assert
+	assert.NotNil(err)
+	assert.Nil(pin)
+}
+
+func TestGetDriver(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	dev := deviceMock{name: "Testdriver"}
+	bPin := boardPin{chipID: "Testid"}
+	boardPins := PinsMap{5: &bPin}
+	testBoard := &Board{
+		pins:  boardPins,
+		chips: map[string]*chip{"Testid": {driver: &dev}},
+	}
+	// act
+	driver, err := testBoard.getDriver(&bPin)
+	// assert
+	require.Nil(err)
+	assert.NotNil(driver)
+	assert.Equal(driver.Name(), "Testdriver")
+}
+
+func TestGetDriverNotThereGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	dev := deviceMock{name: "Testdriver"}
+	bPin := boardPin{chipID: "Testid1"}
+	boardPins := PinsMap{5: &bPin}
+	testBoard := &Board{
+		pins:  boardPins,
+		chips: map[string]*chip{"Testid2": {driver: &dev}},
+	}
+	// act
+	driver, err := testBoard.getDriver(&bPin)
+	// assert
+	assert.NotNil(err)
+	assert.Nil(driver)
+}
+
 func (d *deviceMock) Name() string                                                      { return d.name }
 func (d *deviceMock) SetName(s string)                                                  { d.name = s }
 func (d *deviceMock) Start() (err error)                                                { return }
 func (d *deviceMock) Halt() (err error)                                                 { return }
-func (d *deviceMock) Connection() gobot.Connection                                      { return d.connection }
+func (d *deviceMock) Connection() gobot.Connection                                      { return nil }
 func (d *deviceMock) WriteGPIO(pin uint8, val uint8) (err error)                        { return }
 func (d *deviceMock) ReadGPIO(pin uint8) (val uint8, err error)                         { return }
 func (d *deviceMock) Command(string) (command func(map[string]interface{}) interface{}) { return }
-
-func (a *adaptorMock) Name() string          { return a.name }
-func (a *adaptorMock) SetName(n string)      { a.name = n }
-func (a *adaptorMock) Connect() (err error)  { return }
-func (a *adaptorMock) Finalize() (err error) { return }

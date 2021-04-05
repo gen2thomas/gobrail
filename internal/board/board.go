@@ -5,6 +5,11 @@ package board
 // in general a pin is a connection to a usable part of the board or chip
 // therefore this is also the memory (pin equals the address in memory)
 //
+//      Author: g2t
+//  Created on: 28.03.2021
+// Called from: Modellbahn.cpp (outdated)
+// Call       : some functions from gobot-adaptor (e,g, digispark)
+//
 // Functions:
 // + most functions ready for each type of board (at the moment only typ2)
 // + structure for each chip to configure
@@ -16,6 +21,7 @@ package board
 // - each pin is analog IO with min/max value (binary can be interpreted as val=max=1/val=min=0, negotiation)
 // - search for main address of board (configmode)
 // - use list of already used i2cdevice addresses to exclude from search (configmode)
+// - read/write eeprom at sufficient board or adaptor for "configmode"
 
 import (
 	"fmt"
@@ -35,16 +41,14 @@ const (
 	Memory
 )
 
-// ChipOperations is an interface for interact with gobot driver for chip
-type ChipOperations interface {
+// DriverOperations is an interface for interact with gobot driver for chip
+type DriverOperations interface {
 	gobot.Driver
 	Command(string) (command func(map[string]interface{}) interface{})
 }
 
 // ConfigurationOperations is an interface for interact with configuration part
 type ConfigurationOperations interface {
-	WriteBoardConfig() (err error)
-	ReadBoardConfig() (err error)
 	ShowBoardConfig()
 }
 
@@ -55,22 +59,18 @@ type DeviceOperations interface {
 	SetValue(boardPinNr uint8, value uint8) (err error)
 	SetAllIoPins() (err error)
 	ResetAllIoPins() (err error)
-	writeGPIO(pin uint8, val uint8) (err error)
-	readGPIO(pin uint8) (val uint8, err error)
-	writeEEPROM(address uint8, val uint8) (err error)
-	readEEPROM(address uint8) (val uint8, err error)
 }
 
 type chip struct {
 	address uint8
-	device  ChipOperations
+	driver  DriverOperations
 }
 
 type boardPin struct {
 	//id to chiplist
 	chipID string
 	//io port of the chip
-	chipPin uint8
+	chipPinNr uint8
 	// type of the io pin
 	pinType PinType
 }
@@ -89,7 +89,7 @@ type Board struct {
 func (b *Board) Devices() []gobot.Device {
 	var allDevices gobot.Devices
 	for _, chip := range b.chips {
-		allDevices = append(allDevices, chip.device)
+		allDevices = append(allDevices, chip.driver)
 	}
 	return allDevices
 }
@@ -107,17 +107,15 @@ func (b *Board) PinsOfType(pinType PinType) PinsMap {
 
 // SetValue sets the given pin of board to the given value
 func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
-	//get actual device first (can be main or casc)
 	var bPin *boardPin
-	var ok bool
-	if bPin, ok = b.pins[boardPinNr]; !ok {
-		err = fmt.Errorf("Pin %d not there in board %s", boardPinNr, b.name)
+	if bPin, err = b.getBoardPin(boardPinNr); err != nil {
+		return
 	}
 	switch bPin.pinType {
 	case Binary:
-		err = b.writeGPIO(bPin.chipPin, value)
+		err = b.writeGPIO(bPin, value)
 	case Memory:
-		err = b.writeEEPROM(bPin.chipPin, value)
+		err = b.writeEEPROM(bPin, value)
 	default:
 		err = fmt.Errorf("Pin %d with type %v not allowed to set with value %d", boardPinNr, bPin.pinType, value)
 	}
@@ -126,17 +124,15 @@ func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
 
 // ReadValue reads the value of the given pin of board
 func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
-	//get actual device first (can be main or casc)
 	var bPin *boardPin
-	var ok bool
-	if bPin, ok = b.pins[boardPinNr]; !ok {
-		err = fmt.Errorf("Pin %d not there in board %s", boardPinNr, b.name)
+	if bPin, err = b.getBoardPin(boardPinNr); err != nil {
+		return
 	}
 	switch bPin.pinType {
 	case Binary:
-		value, err = b.readGPIO(bPin.chipPin)
+		value, err = b.readGPIO(bPin)
 	case Memory:
-		value, err = b.readEEPROM(bPin.chipPin)
+		value, err = b.readEEPROM(bPin)
 	default:
 		err = fmt.Errorf("Pin %d with type %v not allowed to read value", boardPinNr, bPin.pinType)
 	}
@@ -177,13 +173,13 @@ func (b *Board) ShowBoardConfig() {
 	fmt.Printf("\n------ Chips on board ------")
 	for chipID, chip := range b.chips {
 		fmt.Printf("\nChip Id: %s", chipID)
-		fmt.Printf(", chip driver name: %s", chip.device.Name())
+		fmt.Printf(", chip driver name: %s", chip.driver.Name())
 		fmt.Printf(", chip address: %d", chip.address)
 	}
 	fmt.Printf("\n------ Pins on board ------")
 	for pinNr, boardPin := range b.pins {
 		fmt.Printf("\nBoard pin number: %d", pinNr)
-		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.pinType, boardPin.chipPin, boardPin.chipID)
+		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.pinType, boardPin.chipPinNr, boardPin.chipID)
 	}
 	fmt.Printf("\n------ Debug done ------\n")
 }
@@ -203,4 +199,23 @@ func (pt PinType) String() string {
 	default:
 		return "Unknown pintype"
 	}
+}
+
+func (b *Board) getBoardPin(boardPinNr uint8) (boardPin *boardPin, err error) {
+	var ok bool
+	if boardPin, ok = b.pins[boardPinNr]; !ok {
+		err = fmt.Errorf("Pin %d not there in board %s", boardPinNr, b.name)
+	}
+	return
+}
+
+func (b *Board) getDriver(boardPin *boardPin) (driver DriverOperations, err error) {
+	var ok bool
+	var chip *chip
+	if chip, ok = b.chips[boardPin.chipID]; !ok {
+		err = fmt.Errorf("Driver for %s not there in board %s", boardPin.chipID, b.name)
+		return
+	}
+	driver = chip.driver
+	return
 }
