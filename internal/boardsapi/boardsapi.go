@@ -90,9 +90,13 @@ func NewBoardsAPI(adaptor i2c.Connector, boardRecipes []BoardRecipe) *BoardsAPI 
 }
 
 // GetFreeAPIPins gets all not already mapped API pins
-func (bi *BoardsAPI) GetFreeAPIPins(boardID string, pinType board.PinType) APIPinsMap {
-	var freePins = make(APIPinsMap)
-	board := bi.boards[boardID]
+func (bi *BoardsAPI) GetFreeAPIPins(boardID string, pinType board.PinType) (freePins APIPinsMap) {
+	freePins = make(APIPinsMap)
+	var board *board.Board
+	var ok bool
+	if board, ok = bi.boards[boardID]; !ok {
+		return
+	}
 	for boardPinNr := range board.PinsOfType(pinType) {
 		if bi.FindRailDevice(boardID, boardPinNr) == "" {
 			freeKey := fmt.Sprintf("Free_%s_%03d", boardID, boardPinNr)
@@ -103,9 +107,13 @@ func (bi *BoardsAPI) GetFreeAPIPins(boardID string, pinType board.PinType) APIPi
 }
 
 // GetMappedAPIPins gets the already mapped API pins
-func (bi *BoardsAPI) GetMappedAPIPins(boardID string, pinType board.PinType) APIPinsMap {
-	var mappedPins = make(APIPinsMap)
-	board := bi.boards[boardID]
+func (bi *BoardsAPI) GetMappedAPIPins(boardID string, pinType board.PinType) (mappedPins APIPinsMap) {
+	mappedPins = make(APIPinsMap)
+	var board *board.Board
+	var ok bool
+	if board, ok = bi.boards[boardID]; !ok {
+		return
+	}
 	pinsOfType := board.PinsOfType(pinType)
 	for railDeviceKey, mappedPin := range bi.mappedPins {
 		if mappedPin.boardID == boardID {

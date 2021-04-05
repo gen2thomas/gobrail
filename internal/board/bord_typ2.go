@@ -53,16 +53,12 @@ var boardPinsDefault = PinsMap{
 
 // NewBoardTyp2 creates a new board of typ 2
 func NewBoardTyp2(adaptor i2c.Connector, address uint8, name string) *Board {
-	p := &Board{
-		name: name,
-		pins: boardPinsDefault,
-		chips: map[string]*chip{chipID: {
-			address: address,
-			driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
-		}},
-	}
+	chips := map[string]*chip{chipID: {
+		address: address,
+		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
+	}}
 
-	return p
+	return NewBoard(name, chips, boardPinsDefault)
 }
 
 func (b *Board) writeGPIO(bPin *boardPin, val uint8) (err error) {

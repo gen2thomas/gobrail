@@ -85,6 +85,11 @@ type Board struct {
 	pins  PinsMap
 }
 
+// NewBoard creates a new board with given objects
+func NewBoard(name string, chips map[string]*chip, pins PinsMap) *Board {
+	return &Board{name: name, chips: chips, pins: pins}
+}
+
 // GobotDevices gets all gobot devices of the board
 func (b *Board) GobotDevices() []gobot.Device {
 	var allDevices gobot.Devices
