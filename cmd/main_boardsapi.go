@@ -19,56 +19,64 @@ var boardRecipePca9501 = boardsapi.BoardRecipe{
 	BoardType:   boardsapi.Typ2,
 }
 
+var deviceArray = [...]string{
+	"Weiche1 Links",
+	"Weiche1 Rechts",
+	"Weiche2 Links",
+	"Weiche2 Rechts",
+	"Signal1 Rot",
+	"Signal1 Grün",
+	"Signal2 Rot",
+	"Signal2 Grün",
+}
+
 func main() {
 
 	adaptor := digispark.NewAdaptor()
 	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
 	firstLoop := true
+	deviceArrayIdx := 0
+	value := uint8(0)
 
 	work := func() {
-		gobot.Every(4000*time.Millisecond, func() {
+		gobot.Every(1000*time.Millisecond, func() {
 			if firstLoop {
-				//boardAPI.ShowConfigs()
+				fmt.Printf("\n------ IO test ------\n")
+				boardAPI.SetAllOutputValues()
+				time.Sleep(2000 * time.Millisecond)
+				boardAPI.ResetAllOutputValues()
+				time.Sleep(2000 * time.Millisecond)
+
 				fmt.Printf("\n------ Free pins ------\n")
 				freeAPIPins := boardAPI.GetFreeAPIPins(boardName, board.Binary)
 				fmt.Println(freeAPIPins)
 
-				fmt.Printf("\n------ Mapped pins ------\n")
+				fmt.Printf("\n------ Map pins ------\n")
+				boardAPI.MapPin(boardName, 0, "Weiche1 Links")
+				boardAPI.MapPin(boardName, 1, "Weiche1 Rechts")
+				boardAPI.MapPin(boardName, 2, "Weiche2 Links")
+				boardAPI.MapPin(boardName, 3, "Weiche2 Rechts")
+				boardAPI.MapPin(boardName, 4, "Signal1 Rot")
+				boardAPI.MapPin(boardName, 5, "Signal1 Grün")
+				boardAPI.MapPin(boardName, 6, "Signal2 Rot")
+				boardAPI.MapPin(boardName, 7, "Signal2 Grün")
 				mappedAPIPins := boardAPI.GetMappedAPIPins(boardName, board.Binary)
 				fmt.Println(mappedAPIPins)
+				time.Sleep(2000 * time.Millisecond)
 
-				fmt.Printf("\n------ Map pin ------\n")
-				boardAPI.MapPin(boardName, 0, "Weiche1 Links")
-				mappedAPIPins = boardAPI.GetMappedAPIPins(boardName, board.Binary)
-				fmt.Println(mappedAPIPins)
-
-				// already mapped
-				boardAPI.MapPin(boardName, 0, "Weiche1 Links")
-				boardAPI.MapPin(boardName, 0, "Weiche1 Rechts")
-
-				boardAPI.SetValue("Weiche1 Links", 0)
-
-				// not mapped
-				boardAPI.SetValue("Weiche1 Rechts", 0)
-
-				fmt.Printf("\n------ Release pin ------\n")
-				boardAPI.ReleasePin("Weiche1 Links")
-				boardAPI.SetValue("Weiche1 Links", 0)
-
-				// already released
-				boardAPI.ReleasePin("Weiche1 Links")
-				//fmt.Printf("\n------ Write to Memory ------\n")
-				//boardAPI.WriteBoardConfig()
-				//fmt.Printf("\n------ Read from Memory ------\n")
-				//boardAPI.ReadBoardConfig()
-				//boardAPI.ShowConfigs()
 				firstLoop = false
 				fmt.Printf("\n------ Now running ------\n")
+			} else {
+				boardAPI.SetValue(deviceArray[deviceArrayIdx], value)
+				deviceArrayIdx++
+				if deviceArrayIdx > 7 {
+					deviceArrayIdx = 0
+					value++
+				}
+				if value > 1 {
+					value = 0
+				}
 			}
-
-			//boardAPI.SetAllOutputValues()
-			time.Sleep(2000 * time.Millisecond)
-			//boardAPI.ResetAllOutputValues()
 		})
 	}
 
