@@ -31,6 +31,24 @@ import (
 	"github.com/gen2thomas/gobrail/internal/board"
 )
 
+// ConfigurationOperations is an interface for interact with configuration part
+type ConfigurationOperations interface {
+	ShowBoardConfig()
+}
+
+// Boarder is an interface for interact with a board
+type Boarder interface {
+	ConfigurationOperations
+	GobotDevices() []gobot.Device
+	GetBinaryPinNumbers() map[uint8]struct{}
+	GetAnalogPinNumbers() map[uint8]struct{}
+	GetMemoryPinNumbers() map[uint8]struct{}
+	ReadValue(boardPinNr uint8) (uint8, error)
+	SetValue(boardPinNr uint8, value uint8) (err error)
+	SetAllIoPins() (err error)
+	ResetAllIoPins() (err error)
+}
+
 type boardType uint8
 
 const (
@@ -48,7 +66,7 @@ type BoardRecipe struct {
 }
 
 // BoardsMap is the list of already created boards
-type BoardsMap map[string]*board.Board
+type BoardsMap map[string]Boarder
 
 // BoardsAPI is the main object for API access
 type BoardsAPI struct {

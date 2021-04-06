@@ -7,7 +7,6 @@ import (
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/platforms/digispark"
 
-	"github.com/gen2thomas/gobrail/internal/board"
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 )
 
@@ -48,19 +47,19 @@ func main() {
 				time.Sleep(2000 * time.Millisecond)
 
 				fmt.Printf("\n------ Free pins ------\n")
-				freeAPIPins := boardAPI.GetFreeAPIPins(boardName, board.Binary)
+				freeAPIPins := boardAPI.GetFreeAPIBinaryPins(boardName)
 				fmt.Println(freeAPIPins)
 
 				fmt.Printf("\n------ Map pins ------\n")
-				boardAPI.MapPin(boardName, 0, "Weiche1 Links")
-				boardAPI.MapPin(boardName, 1, "Weiche1 Rechts")
-				boardAPI.MapPin(boardName, 2, "Weiche2 Links")
-				boardAPI.MapPin(boardName, 3, "Weiche2 Rechts")
-				boardAPI.MapPin(boardName, 4, "Signal1 Rot")
-				boardAPI.MapPin(boardName, 5, "Signal1 Grün")
-				boardAPI.MapPin(boardName, 6, "Signal2 Rot")
-				boardAPI.MapPin(boardName, 7, "Signal2 Grün")
-				mappedAPIPins := boardAPI.GetMappedAPIPins(boardName, board.Binary)
+				boardAPI.MapBinaryPin(boardName, 0, "Weiche1 Links")
+				boardAPI.MapBinaryPin(boardName, 1, "Weiche1 Rechts")
+				boardAPI.MapBinaryPin(boardName, 2, "Weiche2 Links")
+				boardAPI.MapBinaryPin(boardName, 3, "Weiche2 Rechts")
+				boardAPI.MapBinaryPin(boardName, 4, "Signal1 Rot")
+				boardAPI.MapBinaryPin(boardName, 5, "Signal1 Grün")
+				boardAPI.MapBinaryPin(boardName, 6, "Signal2 Rot")
+				boardAPI.MapBinaryPin(boardName, 7, "Signal2 Grün")
+				mappedAPIPins := boardAPI.GetMappedAPIBinaryPins(boardName)
 				fmt.Println(mappedAPIPins)
 				time.Sleep(2000 * time.Millisecond)
 

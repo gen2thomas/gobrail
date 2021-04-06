@@ -55,9 +55,9 @@ func TestPinsOfType(t *testing.T) {
 	}
 
 	// act
-	pinsBin := testBoard.PinsOfType(Binary)
-	pinsAna := testBoard.PinsOfType(Analog)
-	pinsMem := testBoard.PinsOfType(Memory)
+	pinsBin := testBoard.GetBinaryPinNumbers()
+	pinsAna := testBoard.GetAnalogPinNumbers()
+	pinsMem := testBoard.GetMemoryPinNumbers()
 
 	// assert
 	assert.Equal(3, len(pinsBin))

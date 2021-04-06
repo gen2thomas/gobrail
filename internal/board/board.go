@@ -47,20 +47,6 @@ type DriverOperations interface {
 	Command(string) (command func(map[string]interface{}) interface{})
 }
 
-// ConfigurationOperations is an interface for interact with configuration part
-type ConfigurationOperations interface {
-	ShowBoardConfig()
-}
-
-// DeviceOperations is an interface for interact with underlying device
-type DeviceOperations interface {
-	ConfigurationOperations
-	ReadValue(boardPinNr uint8) (uint8, error)
-	SetValue(boardPinNr uint8, value uint8) (err error)
-	SetAllIoPins() (err error)
-	ResetAllIoPins() (err error)
-}
-
 type chip struct {
 	address uint8
 	driver  DriverOperations
@@ -99,15 +85,19 @@ func (b *Board) GobotDevices() []gobot.Device {
 	return allDevices
 }
 
-// PinsOfType gets all pins of board for the given type
-func (b *Board) PinsOfType(pinType PinType) PinsMap {
-	pins := make(PinsMap)
-	for idx, boardPin := range b.pins {
-		if boardPin.pinType == pinType {
-			pins[idx] = boardPin
-		}
-	}
-	return pins
+// GetBinaryPinNumbers gets all related pins of board
+func (b *Board) GetBinaryPinNumbers() map[uint8]struct{} {
+	return b.getPinsOfType(Binary)
+}
+
+// GetAnalogPinNumbers gets all related pins of board
+func (b *Board) GetAnalogPinNumbers() map[uint8]struct{} {
+	return b.getPinsOfType(Analog)
+}
+
+// GetMemoryPinNumbers gets all related pins of board
+func (b *Board) GetMemoryPinNumbers() map[uint8]struct{} {
+	return b.getPinsOfType(Memory)
 }
 
 // SetValue sets the given pin of board to the given value
@@ -223,4 +213,14 @@ func (b *Board) getDriver(boardPin *boardPin) (driver DriverOperations, err erro
 	}
 	driver = chip.driver
 	return
+}
+
+func (b *Board) getPinsOfType(pinType PinType) (pinNumbers map[uint8]struct{}) {
+	pinNumbers = make(map[uint8]struct{})
+	for pinNumber, boardPin := range b.pins {
+		if boardPin.pinType == pinType {
+			pinNumbers[pinNumber] = struct{}{}
+		}
+	}
+	return pinNumbers
 }
