@@ -1,0 +1,17 @@
+@startuml
+Off : lamp is off
+Off_Defective : lamp is off
+On : lamp is on
+Starting : lamp start in progress
+Stopping : lamp stop in progress
+[*] --> Off
+Off --> Starting : switch on
+Starting --> On : start procedure finished
+On --> Stopping : switch off
+Stopping --> Off :  stop procedure finished
+On --> Off_Defective : make defective
+Starting --> Off_Defective : make defective
+Stopping --> Off_Defective : make defective
+Off --> Off_Defective : make defective
+Off_Defective --> Off : repair
+@enduml
