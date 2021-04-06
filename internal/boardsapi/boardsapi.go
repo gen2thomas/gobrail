@@ -89,6 +89,21 @@ func NewBoardsAPI(adaptor i2c.Connector, boardRecipes []BoardRecipe) *BoardsAPI 
 	return bi
 }
 
+// FindRailDevice gets the key of mapped rail device to a given boards pin, if not mapped an empty string
+func (bi *BoardsAPI) FindRailDevice(boardID string, boardPinNr uint8) (railDeviceKey string) {
+	for railDeviceKey, mappedPin := range bi.mappedPins {
+		if mappedPin.boardID != boardID {
+			continue
+		}
+		if mappedPin.boardPinNr != boardPinNr {
+			continue
+		} else {
+			return railDeviceKey
+		}
+	}
+	return
+}
+
 // GetFreeAPIPins gets all not already mapped API pins
 func (bi *BoardsAPI) GetFreeAPIPins(boardID string, pinType board.PinType) (freePins APIPinsMap) {
 	freePins = make(APIPinsMap)
@@ -127,22 +142,21 @@ func (bi *BoardsAPI) GetMappedAPIPins(boardID string, pinType board.PinType) (ma
 }
 
 // MapPin connects a boards pin to an API pin
-func (bi *BoardsAPI) MapPin(boardID string, boardPinNr uint8, railDeviceName string) {
-	alreadyMappedKey := bi.FindRailDevice(boardID, boardPinNr)
+func (bi *BoardsAPI) MapPin(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
 	railDeviceKey := createKey(railDeviceName)
-	if alreadyMappedKey == "" {
-		bi.mappedPins[railDeviceKey] = &apiPin{boardID: boardID, boardPinNr: boardPinNr, railDeviceName: railDeviceName}
-	} else {
-		if mappedPin, ok := bi.mappedPins[railDeviceKey]; ok {
-			fmt.Printf("Rail device already mapped: '%s'\n", mappedPin)
-		}
-		if alreadyMappedKey != railDeviceKey {
-			fmt.Printf("Pin already mapped: '%s'\n", bi.mappedPins[alreadyMappedKey])
-		}
+	if mappedPin, ok := bi.mappedPins[railDeviceKey]; ok {
+		return fmt.Errorf("Rail device '%s' (key: %s) already mapped: '%s'", railDeviceName, railDeviceKey, mappedPin)
 	}
+	alreadyMappedKey := bi.FindRailDevice(boardID, boardPinNr)
+	if alreadyMappedKey != "" {
+		return fmt.Errorf("Pin already mapped: '%s'", bi.mappedPins[alreadyMappedKey])
+	}
+
+	bi.mappedPins[railDeviceKey] = &apiPin{boardID: boardID, boardPinNr: boardPinNr, railDeviceName: railDeviceName}
+	return
 }
 
-// MapPinNextFree connect a boards pin to an (randomized) free API pin (rail device)
+// MapPinNextFree connect a boards pin of the given type to an (randomized) free API pin (rail device)
 func (bi *BoardsAPI) MapPinNextFree(boardID string, pinType board.PinType, railDeviceName string) {
 	freePins := bi.GetFreeAPIPins(boardID, pinType)
 	for _, freePin := range freePins {
@@ -159,21 +173,6 @@ func (bi *BoardsAPI) ReleasePin(railDeviceName string) {
 	} else {
 		delete(bi.mappedPins, railDeviceKey)
 	}
-}
-
-// FindRailDevice gets the mapped rail device (if mapped) to a given boards pin
-func (bi *BoardsAPI) FindRailDevice(boardID string, boardPinNr uint8) (railDeviceKey string) {
-	for railDeviceKey, mappedPin := range bi.mappedPins {
-		if mappedPin.boardID != boardID {
-			continue
-		}
-		if mappedPin.boardPinNr != boardPinNr {
-			continue
-		} else {
-			return railDeviceKey
-		}
-	}
-	return
 }
 
 // GobotDevices gets all gobot devices of all boards
