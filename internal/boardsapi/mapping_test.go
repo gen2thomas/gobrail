@@ -324,6 +324,4 @@ func createBoardPinNumbersMap(offset uint8, countEntries uint8) (fm map[uint8]st
 // not used in this test scenarios
 func (b boards1Mock) ReadValue(boardPinNr uint8) (uint8, error)          { return 0, nil }
 func (b boards1Mock) SetValue(boardPinNr uint8, value uint8) (err error) { return }
-func (b boards1Mock) SetAllIoPins() (err error)                          { return }
-func (b boards1Mock) ResetAllIoPins() (err error)                        { return }
 func (b boards1Mock) ShowBoardConfig()                                   { return }

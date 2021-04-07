@@ -29,6 +29,7 @@ func main() {
 	work := func() {
 		gobot.Every(4000*time.Millisecond, func() {
 			if loopCounter == 0 {
+				time.Sleep(2000 * time.Millisecond)
 				fmt.Printf("\n------ Init Lamp ------\n")
 				lamp, _ = raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
 				fmt.Printf("\n------ Now running ------\n")

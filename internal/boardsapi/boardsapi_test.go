@@ -99,6 +99,4 @@ func (b boardsMock) GetAnalogPinNumbers() map[uint8]struct{}            { return
 func (b boardsMock) GetMemoryPinNumbers() map[uint8]struct{}            { return nil }
 func (b boardsMock) ReadValue(boardPinNr uint8) (uint8, error)          { return 0, nil }
 func (b boardsMock) SetValue(boardPinNr uint8, value uint8) (err error) { return }
-func (b boardsMock) SetAllIoPins() (err error)                          { return }
-func (b boardsMock) ResetAllIoPins() (err error)                        { return }
 func (b boardsMock) ShowBoardConfig()                                   { return }

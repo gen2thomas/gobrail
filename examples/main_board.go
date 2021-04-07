@@ -50,13 +50,6 @@ func main() {
 				fmt.Printf("\n------ Config ------\n")
 				board.ShowBoardConfig()
 				time.Sleep(500 * time.Millisecond)
-
-				fmt.Printf("\n------ IO test ------\n")
-				board.SetAllIoPins()
-				time.Sleep(2000 * time.Millisecond)
-				board.ResetAllIoPins()
-				time.Sleep(2000 * time.Millisecond)
-
 				fmt.Printf("\n------ Now running ------\n")
 				firstLoop = false
 			} else {

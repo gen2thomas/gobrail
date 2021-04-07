@@ -45,8 +45,6 @@ type Boarder interface {
 	GetMemoryPinNumbers() map[uint8]struct{}
 	ReadValue(boardPinNr uint8) (uint8, error)
 	SetValue(boardPinNr uint8, value uint8) (err error)
-	SetAllIoPins() (err error)
-	ResetAllIoPins() (err error)
 }
 
 type boardType uint8
@@ -119,26 +117,6 @@ func (bi *BoardsAPI) ShowConfigs() {
 	for id := range bi.boards {
 		bi.ShowConfig(id)
 	}
-}
-
-// ResetAllOutputValues sets all pins of type "Binary" to inactive for all boards
-func (bi *BoardsAPI) ResetAllOutputValues() (err error) {
-	for _, board := range bi.boards {
-		if err := board.ResetAllIoPins(); err != nil {
-			return err
-		}
-	}
-	return
-}
-
-// SetAllOutputValues sets all pins of type "Binary" to active for all boards
-func (bi *BoardsAPI) SetAllOutputValues() (err error) {
-	for _, board := range bi.boards {
-		if err := board.SetAllIoPins(); err != nil {
-			return err
-		}
-	}
-	return
 }
 
 // SetValue sets a value of a rail device, independent of board

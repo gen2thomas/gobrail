@@ -33,14 +33,14 @@ const chipID = "PCA9501.GPIO.Mem"
 
 //this is the default io configuration of this board
 var boardPinsDefault = PinsMap{
-	0:  {chipID: chipID, chipPinNr: 0, pinType: Binary},
-	1:  {chipID: chipID, chipPinNr: 1, pinType: Binary},
-	2:  {chipID: chipID, chipPinNr: 2, pinType: Binary},
-	3:  {chipID: chipID, chipPinNr: 3, pinType: Binary},
-	4:  {chipID: chipID, chipPinNr: 4, pinType: Binary},
-	5:  {chipID: chipID, chipPinNr: 5, pinType: Binary},
-	6:  {chipID: chipID, chipPinNr: 6, pinType: Binary},
-	7:  {chipID: chipID, chipPinNr: 7, pinType: Binary},
+	0:  {chipID: chipID, chipPinNr: 0, pinType: BinaryW},
+	1:  {chipID: chipID, chipPinNr: 1, pinType: BinaryW},
+	2:  {chipID: chipID, chipPinNr: 2, pinType: BinaryW},
+	3:  {chipID: chipID, chipPinNr: 3, pinType: BinaryW},
+	4:  {chipID: chipID, chipPinNr: 4, pinType: BinaryR},
+	5:  {chipID: chipID, chipPinNr: 5, pinType: BinaryR},
+	6:  {chipID: chipID, chipPinNr: 6, pinType: BinaryR},
+	7:  {chipID: chipID, chipPinNr: 7, pinType: BinaryR},
 	8:  {chipID: chipID, chipPinNr: 0x01, pinType: Memory},
 	9:  {chipID: chipID, chipPinNr: 0x02, pinType: Memory},
 	10: {chipID: chipID, chipPinNr: 0x02, pinType: Memory},

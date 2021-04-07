@@ -35,10 +35,22 @@ type PinType uint8
 const (
 	// Binary is used for r/w "0","1" on GPIO
 	Binary PinType = iota
+	// BinaryR is used for read only "0","1" from GPIO
+	BinaryR
+	// BinaryW is used for write only "0","1" to GPIO
+	BinaryW
 	// Analog is used for r/w 0-255 on analog outputs or PWM
 	Analog
+	// AnalogR is used for read only 0-255 from analog inputs
+	AnalogR
+	// AnalogW is used for write only 0-255 to analog outputs or PWM
+	AnalogW
 	// Memory is used for r/w to EEPROM
 	Memory
+	// MemoryR is used for read only from EEPROM
+	MemoryR
+	// MemoryW is used for write only to EEPROM
+	MemoryW
 )
 
 // DriverOperations is an interface for interact with gobot driver for chip
@@ -87,17 +99,17 @@ func (b *Board) GobotDevices() []gobot.Device {
 
 // GetBinaryPinNumbers gets all related pins of board
 func (b *Board) GetBinaryPinNumbers() map[uint8]struct{} {
-	return b.getPinsOfType(Binary)
+	return b.getPinsOfType(Binary, BinaryW, BinaryR)
 }
 
 // GetAnalogPinNumbers gets all related pins of board
 func (b *Board) GetAnalogPinNumbers() map[uint8]struct{} {
-	return b.getPinsOfType(Analog)
+	return b.getPinsOfType(Analog, AnalogW, AnalogR)
 }
 
 // GetMemoryPinNumbers gets all related pins of board
 func (b *Board) GetMemoryPinNumbers() map[uint8]struct{} {
-	return b.getPinsOfType(Memory)
+	return b.getPinsOfType(Memory, MemoryW, MemoryR)
 }
 
 // SetValue sets the given pin of board to the given value
@@ -109,7 +121,11 @@ func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
 	switch bPin.pinType {
 	case Binary:
 		err = b.writeGPIO(bPin, value)
+	case BinaryW:
+		err = b.writeGPIO(bPin, value)
 	case Memory:
+		err = b.writeEEPROM(bPin, value)
+	case MemoryW:
 		err = b.writeEEPROM(bPin, value)
 	default:
 		err = fmt.Errorf("Pin %d with type %v not allowed to set with value %d", boardPinNr, bPin.pinType, value)
@@ -126,40 +142,16 @@ func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
 	switch bPin.pinType {
 	case Binary:
 		value, err = b.readGPIO(bPin)
+	case BinaryR:
+		value, err = b.readGPIO(bPin)
 	case Memory:
+		value, err = b.readEEPROM(bPin)
+	case MemoryR:
 		value, err = b.readEEPROM(bPin)
 	default:
 		err = fmt.Errorf("Pin %d with type %v not allowed to read value", boardPinNr, bPin.pinType)
 	}
 	return
-}
-
-// SetAllIoPins sets all pins of type "Binary" to active
-func (b *Board) SetAllIoPins() (err error) {
-	for ioNr, boardPin := range b.pins {
-		if boardPin.pinType != Binary {
-			continue
-		}
-		err = b.SetValue(ioNr, 0xFF)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// ResetAllIoPins sets all pins of type "Binary" to inactive
-func (b *Board) ResetAllIoPins() error {
-	for ioNr, boardPin := range b.pins {
-		if boardPin.pinType != Binary {
-			continue
-		}
-		err := b.SetValue(ioNr, 0x00)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // ShowBoardConfig prints all information of the board
@@ -215,12 +207,21 @@ func (b *Board) getDriver(boardPin *boardPin) (driver DriverOperations, err erro
 	return
 }
 
-func (b *Board) getPinsOfType(pinType PinType) (pinNumbers map[uint8]struct{}) {
+func (b *Board) getPinsOfType(pinTypes ...PinType) (pinNumbers map[uint8]struct{}) {
 	pinNumbers = make(map[uint8]struct{})
 	for pinNumber, boardPin := range b.pins {
-		if boardPin.pinType == pinType {
+		if containsPinType(pinTypes, boardPin.pinType) {
 			pinNumbers[pinNumber] = struct{}{}
 		}
 	}
 	return pinNumbers
+}
+
+func containsPinType(pinTypes []PinType, pinTypeToSearchFor PinType) bool {
+	for _, pinType := range pinTypes {
+		if pinType == pinTypeToSearchFor {
+			return true
+		}
+	}
+	return false
 }
