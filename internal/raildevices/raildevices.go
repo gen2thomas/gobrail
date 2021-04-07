@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-// BoardsApier is an interface for interact with a boards API
-type BoardsApier interface {
+// BoardsAPIer is an interface for interact with a boards API
+type BoardsAPIer interface {
 	MapBinaryPin(boardID string, boardPinNr uint8, railDeviceName string) (err error)
 	MapAnalogPin(boardID string, boardPinNr uint8, railDeviceName string) (err error)
 	MapMemoryPin(boardID string, boardPinNrOrNegative int, railDeviceName string) (err error)

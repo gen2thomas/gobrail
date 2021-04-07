@@ -30,7 +30,7 @@ func main() {
 		gobot.Every(4000*time.Millisecond, func() {
 			if loopCounter == 0 {
 				fmt.Printf("\n------ Init Lamp ------\n")
-				lamp = raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
+				lamp, _ = raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
 				fmt.Printf("\n------ Now running ------\n")
 				fmt.Printf("\n------ Mapped pins ------\n")
 				mPins := boardAPI.GetMappedAPIBinaryPins(boardID)
@@ -42,10 +42,21 @@ func main() {
 			time.Sleep(2000 * time.Millisecond)
 			lamp.SwitchOff()
 			if loopCounter == 2 {
-				lamp.MakeDefective()
+				if deferr := lamp.MakeDefective(); deferr == nil {
+					fmt.Printf("Lamp '%s' is now defective, please repair\n", lamp.Name())
+				}
 			}
 			if loopCounter == 5 {
-				lamp.Repair()
+				if reperr := lamp.Repair(); reperr == nil {
+					fmt.Printf("Lamp '%s' was repaired\n", lamp.Name())
+				}
+			}
+			if isDefect, ierr := lamp.IsDefective(); ierr == nil {
+				if isDefect {
+					fmt.Printf("Lamp '%s' is defective\n", lamp.Name())
+				} else {
+					fmt.Printf("Lamp '%s' is working\n", lamp.Name())
+				}
 			}
 			loopCounter++
 		})

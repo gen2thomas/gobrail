@@ -13,89 +13,108 @@ type LampDevice struct {
 	name          string
 	stateName     string
 	defectiveName string
-	boardsAPI     boardsAPIer
+	boardsAPI     BoardsAPIer
 	timing        Timing
 }
 
 // NewLamp creates an instance of a lamp
-func NewLamp(boardsAPI boardsApier, boardID string, boardPinNr uint8, railDeviceName string, timing Timing) *LampDevice {
+func NewLamp(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string, timing Timing) (ld *LampDevice, err error) {
 	stateName := railDeviceName + " state"
 	defectiveName := railDeviceName + " defective"
-
-	boardsAPI.MapBinaryPin(boardID, boardPinNr, railDeviceName)
-	boardsAPI.MapMemoryPin(boardID, -1, stateName)
-	boardsAPI.MapMemoryPin(boardID, -1, defectiveName)
-	ld := &LampDevice{
+	if err = boardsAPI.MapBinaryPin(boardID, boardPinNr, railDeviceName); err != nil {
+		return
+	}
+	if err = boardsAPI.MapMemoryPin(boardID, -1, stateName); err != nil {
+		return
+	}
+	if err = boardsAPI.MapMemoryPin(boardID, -1, defectiveName); err != nil {
+		return
+	}
+	ld = &LampDevice{
 		name:          railDeviceName,
 		stateName:     stateName,
 		defectiveName: defectiveName,
 		boardsAPI:     boardsAPI,
 	}
-	ld.SwitchOff()
-	ld.Repair()
-	return ld
+	if err = ld.SwitchOff(); err != nil {
+		return
+	}
+	if err = ld.Repair(); err != nil {
+		return
+	}
+	return
 }
 
 // IsOn states true when lamp is on
-func (l *LampDevice) IsOn() bool {
-	value, err := l.boardsAPI.GetValue(l.stateName)
-	if err != nil {
-		fmt.Printf("Can't read value from '%s', %s\n", l.stateName, err)
-		return false
+func (l *LampDevice) IsOn() (isOn bool, err error) {
+	var value uint8
+	if value, err = l.boardsAPI.GetValue(l.stateName); err != nil {
+		err = fmt.Errorf("Can't read value from '%s', %w", l.stateName, err)
+		return
 	}
-	return value > 0
-}
-
-// IsOff states true when lamp is off
-func (l *LampDevice) IsOff() bool {
-	return !l.IsOn()
+	return value > 0, nil
 }
 
 // IsDefective states true when lamp is defective
-func (l *LampDevice) IsDefective() bool {
-	value, err := l.boardsAPI.GetValue(l.defectiveName)
-	if err != nil {
-		fmt.Printf("Can't read value from '%s', %s\n", l.defectiveName, err)
-		return false
+func (l *LampDevice) IsDefective() (isDefect bool, err error) {
+	var value uint8
+	if value, err = l.boardsAPI.GetValue(l.defectiveName); err != nil {
+		err = fmt.Errorf("Can't read value from '%s', %w", l.defectiveName, err)
+		return
 	}
-	defective := value > 0
-	if !defective {
-		fmt.Printf("Lamp '%s' is working\n", l.name)
-	}
-	return defective
+	isDefect = value > 0
+	return
 }
 
 // SwitchOn will try to switch on the lamp
-func (l *LampDevice) SwitchOn() {
-	if l.IsDefective() {
-		fmt.Printf("Lamp '%s' is defective, please repair before switch on\n", l.name)
+func (l *LampDevice) SwitchOn() (err error) {
+	var isDefect bool
+	if isDefect, err = l.IsDefective(); err != nil {
+		err = fmt.Errorf("Can't detect defective state before switch on, %w", err)
+		return
+	}
+	if isDefect {
+		err = fmt.Errorf("Lamp '%s' is defective, please repair before switch on", l.name)
 		return
 	}
 	time.Sleep(l.timing.starting)
-	l.boardsAPI.SetValue(l.name, 1)
-	l.boardsAPI.SetValue(l.stateName, 1)
+	if err = l.boardsAPI.SetValue(l.name, 1); err != nil {
+		return
+	}
+	return l.boardsAPI.SetValue(l.stateName, 1)
 }
 
 // SwitchOff will switch off the lamp
-func (l *LampDevice) SwitchOff() {
+func (l *LampDevice) SwitchOff() (err error) {
 	time.Sleep(l.timing.stoping)
-	l.boardsAPI.SetValue(l.name, 0)
-	l.boardsAPI.SetValue(l.stateName, 0)
+	if err = l.boardsAPI.SetValue(l.name, 0); err != nil {
+		return
+	}
+	return l.boardsAPI.SetValue(l.stateName, 0)
 }
 
 // MakeDefective causes the lamp in an simulated defective state
-func (l *LampDevice) MakeDefective() {
-	l.SwitchOff()
-	l.boardsAPI.SetValue(l.defectiveName, 1)
-	fmt.Printf("Lamp '%s' is now defective, please repair\n", l.name)
+func (l *LampDevice) MakeDefective() (err error) {
+	if err = l.SwitchOff(); err != nil {
+		err = fmt.Errorf("Can't switch off before make defective, %w", err)
+		return
+	}
+	return l.boardsAPI.SetValue(l.defectiveName, 1)
 }
 
 // Repair will fix the simulated defective state
-func (l *LampDevice) Repair() {
-	if l.IsOn() {
-		fmt.Printf("Lamp '%s' can be only repaired when off\n", l.name)
-		return
+func (l *LampDevice) Repair() (err error) {
+	var isOn bool
+	if isOn, err = l.IsOn(); err != nil {
+		return err
 	}
-	fmt.Printf("Lamp '%s' is working again\n", l.name)
-	l.boardsAPI.SetValue(l.defectiveName, 0)
+	if isOn {
+		return fmt.Errorf("Lamp '%s' can be only repaired when off", l.name)
+	}
+	return l.boardsAPI.SetValue(l.defectiveName, 0)
+}
+
+// Name gets the name of the lamp (rail device name)
+func (l *LampDevice) Name() string {
+	return l.name
 }
