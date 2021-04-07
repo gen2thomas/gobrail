@@ -42,12 +42,19 @@ func TestPinsOfType(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	boardPins := PinsMap{
-		0: {pinType: Binary},
-		1: {pinType: Memory},
-		2: {pinType: Analog},
-		3: {pinType: Analog},
-		4: {pinType: Binary},
-		5: {pinType: Binary},
+		0:  {pinType: Binary},
+		1:  {pinType: Memory},
+		2:  {pinType: Analog},
+		3:  {pinType: NBinary},
+		4:  {pinType: NBinaryR},
+		5:  {pinType: NBinaryW},
+		6:  {pinType: MemoryR},
+		7:  {pinType: AnalogR},
+		8:  {pinType: MemoryW},
+		9:  {pinType: MemoryR},
+		10: {pinType: BinaryR},
+		11: {pinType: AnalogW},
+		12: {pinType: BinaryW},
 	}
 
 	testBoard := &Board{
@@ -60,9 +67,9 @@ func TestPinsOfType(t *testing.T) {
 	pinsMem := testBoard.GetMemoryPinNumbers()
 
 	// assert
-	assert.Equal(3, len(pinsBin))
-	assert.Equal(2, len(pinsAna))
-	assert.Equal(1, len(pinsMem))
+	assert.Equal(6, len(pinsBin))
+	assert.Equal(3, len(pinsAna))
+	assert.Equal(4, len(pinsMem))
 }
 
 func TestGetBoardPin(t *testing.T) {

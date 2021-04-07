@@ -24,13 +24,16 @@ func main() {
 	adaptor := digispark.NewAdaptor()
 	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
 	loopCounter := 0
+	var oldButtonState bool
+	var button *raildevices.ButtonDevice
 	var lamp *raildevices.LampDevice
 
 	work := func() {
-		gobot.Every(4000*time.Millisecond, func() {
+		gobot.Every(300*time.Millisecond, func() {
 			if loopCounter == 0 {
 				time.Sleep(2000 * time.Millisecond)
-				fmt.Printf("\n------ Init Lamp ------\n")
+				fmt.Printf("\n------ Init Button ------\n")
+				button, _ = raildevices.NewButton(boardAPI, boardID, 4, "Taste 1")
 				lamp, _ = raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
 				fmt.Printf("\n------ Now running ------\n")
 				fmt.Printf("\n------ Mapped pins ------\n")
@@ -39,31 +42,22 @@ func main() {
 				mPins = boardAPI.GetMappedAPIMemoryPins(boardID)
 				fmt.Println(mPins)
 			}
-			lamp.SwitchOn()
-			time.Sleep(2000 * time.Millisecond)
-			lamp.SwitchOff()
-			if loopCounter == 2 {
-				if deferr := lamp.MakeDefective(); deferr == nil {
-					fmt.Printf("Lamp '%s' is now defective, please repair\n", lamp.Name())
-				}
-			}
-			if loopCounter == 5 {
-				if reperr := lamp.Repair(); reperr == nil {
-					fmt.Printf("Lamp '%s' was repaired\n", lamp.Name())
-				}
-			}
-			if isDefect, ierr := lamp.IsDefective(); ierr == nil {
-				if isDefect {
-					fmt.Printf("Lamp '%s' is defective\n", lamp.Name())
+			buttonPressed, _ := button.IsPressed()
+			if buttonPressed != oldButtonState {
+				if buttonPressed {
+					fmt.Printf("Button '%s' was pressed\n", button.Name())
+					lamp.SwitchOn()
 				} else {
-					fmt.Printf("Lamp '%s' is working\n", lamp.Name())
+					fmt.Printf("Button '%s' released\n", button.Name())
+					lamp.SwitchOff()
 				}
 			}
+			oldButtonState = buttonPressed
 			loopCounter++
 		})
 	}
 
-	robot := gobot.NewRobot("play with lamp",
+	robot := gobot.NewRobot("play with button and lamp",
 		[]gobot.Connection{adaptor},
 		boardAPI.GobotDevices(),
 		work,

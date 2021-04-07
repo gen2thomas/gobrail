@@ -18,7 +18,6 @@ package board
 // + set/reset one
 //
 // TODO:
-// - each pin is analog IO with min/max value (binary can be interpreted as val=max=1/val=min=0, negotiation)
 // - search for main address of board (configmode)
 // - use list of already used i2cdevice addresses to exclude from search (configmode)
 // - read/write eeprom at sufficient board or adaptor for "configmode"
@@ -39,6 +38,12 @@ const (
 	BinaryR
 	// BinaryW is used for write only "0","1" to GPIO
 	BinaryW
+	// NBinary is used for r/w "0","1" on negotiated GPIO
+	NBinary
+	// NBinaryR is used for read only "0","1" from negotiated GPIO
+	NBinaryR
+	// NBinaryW is used for write only "0","1" to negotiated GPIO
+	NBinaryW
 	// Analog is used for r/w 0-255 on analog outputs or PWM
 	Analog
 	// AnalogR is used for read only 0-255 from analog inputs
@@ -65,12 +70,11 @@ type chip struct {
 }
 
 type boardPin struct {
-	//id to chiplist
-	chipID string
-	//io port of the chip
+	chipID    string
 	chipPinNr uint8
-	// type of the io pin
-	pinType PinType
+	pinType   PinType
+	minVal    uint8
+	maxVal    uint8
 }
 
 // PinsMap is a map of all pins on a board
@@ -99,7 +103,7 @@ func (b *Board) GobotDevices() []gobot.Device {
 
 // GetBinaryPinNumbers gets all related pins of board
 func (b *Board) GetBinaryPinNumbers() map[uint8]struct{} {
-	return b.getPinsOfType(Binary, BinaryW, BinaryR)
+	return b.getPinsOfType(Binary, BinaryW, BinaryR, NBinary, NBinaryW, NBinaryR)
 }
 
 // GetAnalogPinNumbers gets all related pins of board
@@ -123,6 +127,10 @@ func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
 		err = b.writeGPIO(bPin, value)
 	case BinaryW:
 		err = b.writeGPIO(bPin, value)
+	case NBinary:
+		err = b.writeGPIO(bPin, getNegatedBinaryValue(value))
+	case NBinaryW:
+		err = b.writeGPIO(bPin, getNegatedBinaryValue(value))
 	case Memory:
 		err = b.writeEEPROM(bPin, value)
 	case MemoryW:
@@ -144,6 +152,12 @@ func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
 		value, err = b.readGPIO(bPin)
 	case BinaryR:
 		value, err = b.readGPIO(bPin)
+	case NBinary:
+		value, err = b.readGPIO(bPin)
+		value = getNegatedBinaryValue(value)
+	case NBinaryR:
+		value, err = b.readGPIO(bPin)
+		value = getNegatedBinaryValue(value)
 	case Memory:
 		value, err = b.readEEPROM(bPin)
 	case MemoryR:
@@ -224,4 +238,11 @@ func containsPinType(pinTypes []PinType, pinTypeToSearchFor PinType) bool {
 		}
 	}
 	return false
+}
+
+func getNegatedBinaryValue(value uint8) uint8 {
+	if value > 0 {
+		return 0
+	}
+	return 1
 }
