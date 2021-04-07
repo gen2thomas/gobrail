@@ -8,17 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func NewBoardsAPIMock() *BoardsAPIMock {
-	api := new(BoardsAPIMock)
-	api.apiMapBinaryImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) { return }
-	api.apiMapAnalogImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) { return }
-	api.apiMapMemoryImpl = func(boardID string, boardPinNrOrNegative int, railDeviceName string) (err error) { return }
-	api.apiSetValueImpl = func(railDeviceName string, value uint8) (err error) { return }
-	api.apiGetValueImpl = func(railDeviceName string) (value uint8, err error) { return }
-
-	return api
-}
-
 func TestNewLamp(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
@@ -135,27 +124,27 @@ func TestNewLampWhenSecondMemMapErrorGetsError(t *testing.T) {
 	assert.Equal(expectedError, err)
 }
 
-func TestIsOn(t *testing.T) {
+func TestIsOnSwitchOnSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
 	api := NewBoardsAPIMock()
-	callCounter := -1
-	getValues := [...]uint8{0, 0, 1}
-	api.apiGetValueImpl = func(railDeviceName string) (value uint8, err error) {
-		// first call comes from "NewLamp"
-		callCounter++
-		return getValues[callCounter], nil
-	}
 	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
 	// act
-	shouldBeNotOn, err1 := lamp.IsOn()
-	shouldBeOn, err2 := lamp.IsOn()
+	shouldBeNotOn1, err1 := lamp.IsOn()
+	err2 := lamp.SwitchOn()
+	shouldBeOn, err3 := lamp.IsOn()
+	err4 := lamp.SwitchOff()
+	shouldBeNotOn2, err5 := lamp.IsOn()
 	// assert
 	require.Nil(err1)
 	require.Nil(err2)
-	assert.Equal(false, shouldBeNotOn)
+	require.Nil(err3)
+	require.Nil(err4)
+	require.Nil(err5)
+	assert.Equal(false, shouldBeNotOn1)
 	assert.Equal(true, shouldBeOn)
+	assert.Equal(false, shouldBeNotOn2)
 }
 
 func TestIsOnWhenGetValueHasErrorGetsError(t *testing.T) {
@@ -182,27 +171,27 @@ func TestIsOnWhenGetValueHasErrorGetsError(t *testing.T) {
 	assert.Equal(false, shouldBeNotOn)
 }
 
-func TestIsDefective(t *testing.T) {
+func TestIsDefectiveMakeDefectiveRepair(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
 	api := NewBoardsAPIMock()
-	callCounter := -1
-	getValues := [...]uint8{0, 0, 1}
-	api.apiGetValueImpl = func(railDeviceName string) (value uint8, err error) {
-		// first call comes from "NewLamp"
-		callCounter++
-		return getValues[callCounter], nil
-	}
 	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
 	// act
-	shouldBeNot, err1 := lamp.IsDefective()
-	shouldBe, err2 := lamp.IsDefective()
+	shouldBeNot1, err1 := lamp.IsDefective()
+	err2 := lamp.MakeDefective()
+	shouldBe, err3 := lamp.IsDefective()
+	err4 := lamp.Repair()
+	shouldBeNot2, err5 := lamp.IsDefective()
 	// assert
 	require.Nil(err1)
 	require.Nil(err2)
-	assert.Equal(false, shouldBeNot)
+	require.Nil(err3)
+	require.Nil(err4)
+	require.Nil(err5)
+	assert.Equal(false, shouldBeNot1)
 	assert.Equal(true, shouldBe)
+	assert.Equal(false, shouldBeNot2)
 }
 
 func TestIsDefectiveWhenGetValueHasErrorGetsError(t *testing.T) {
@@ -227,4 +216,35 @@ func TestIsDefectiveWhenGetValueHasErrorGetsError(t *testing.T) {
 	// assert
 	require.NotNil(err)
 	assert.Equal(false, shouldBeNot)
+}
+
+func TestSwitchOnWhenIsDefectiveGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	api := NewBoardsAPIMock()
+	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
+	// act
+	err1 := lamp.MakeDefective()
+	err2 := lamp.SwitchOn()
+	// assert
+	require.Nil(err1)
+	assert.NotNil(err2)
+}
+
+func TestMakeDefectiveWillSwitchOff(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	api := NewBoardsAPIMock()
+	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
+	// act
+	err1 := lamp.SwitchOn()
+	err2 := lamp.MakeDefective()
+	isOn, err3 := lamp.IsOn()
+	// assert
+	require.Nil(err1)
+	require.Nil(err2)
+	require.Nil(err3)
+	assert.Equal(false, isOn)
 }
