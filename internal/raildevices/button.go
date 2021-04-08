@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// ButtonDevice is describes a Button
+// ButtonDevice describes a Button
 type ButtonDevice struct {
 	name      string
 	oldState  bool
