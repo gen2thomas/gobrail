@@ -40,8 +40,8 @@ func (b *ButtonDevice) StateChanged() (hasChanged bool, err error) {
 	return
 }
 
-// IsPressed gets the state of the button
-func (b *ButtonDevice) IsPressed() bool {
+// IsOn gets the state of the button
+func (b *ButtonDevice) IsOn() bool {
 	return b.oldState
 }
 

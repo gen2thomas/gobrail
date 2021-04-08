@@ -72,7 +72,7 @@ func TestNewButtonWhenBinMapErrorGetsError(t *testing.T) {
 	assert.Equal(expectedError, err)
 }
 
-func TestStateChangedIsPressed(t *testing.T) {
+func TestStateChangedIsOn(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
@@ -85,15 +85,15 @@ func TestStateChangedIsPressed(t *testing.T) {
 	}
 	button, _ := NewButton(api, "boardID", 3, "Button")
 	// act
-	state0 := button.IsPressed()
+	state0 := button.IsOn()
 	changed1, err1 := button.StateChanged()
-	state1 := button.IsPressed()
+	state1 := button.IsOn()
 	changed2, err2 := button.StateChanged()
-	state2 := button.IsPressed()
+	state2 := button.IsOn()
 	changed3, err3 := button.StateChanged()
-	state3 := button.IsPressed()
+	state3 := button.IsOn()
 	changed4, err4 := button.StateChanged()
-	state4 := button.IsPressed()
+	state4 := button.IsOn()
 	// assert
 	require.Nil(err1)
 	require.Nil(err2)

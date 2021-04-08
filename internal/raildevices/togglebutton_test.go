@@ -72,7 +72,7 @@ func TestNewToggleButtonWhenBinMapErrorGetsError(t *testing.T) {
 	assert.Equal(expectedError, err)
 }
 
-func TestStateChangedIsOn(t *testing.T) {
+func TestToggleStateChangedIsOn(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)

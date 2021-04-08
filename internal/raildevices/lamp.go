@@ -13,8 +13,9 @@ type LampDevice struct {
 	name          string
 	stateName     string
 	defectiveName string
-	boardsAPI     BoardsAPIer
 	timing        Timing
+	boardsAPI     BoardsAPIer
+	inputDevice   Inputer
 }
 
 // NewLamp creates an instance of a lamp
@@ -117,4 +118,47 @@ func (l *LampDevice) Repair() (err error) {
 // Name gets the name of the lamp (rail device name)
 func (l *LampDevice) Name() string {
 	return l.name
+}
+
+// Map is mapping an input for use in Run()
+func (l *LampDevice) Map(inputDevice Inputer) (err error) {
+	if l.inputDevice != nil {
+		return fmt.Errorf("Lamp '%s' is already mapped to an input '%s'", l.name, l.inputDevice.Name())
+	}
+	if l.name == inputDevice.Name() {
+		return fmt.Errorf("Circular mapping blocked for Lamp '%s'", l.name)
+	}
+	l.inputDevice = inputDevice
+	// synchronize first
+	if l.inputDevice.IsOn() {
+		l.SwitchOn()
+	} else {
+		l.SwitchOff()
+	}
+	return nil
+}
+
+// Run is called in a loop and will make action dependant on the input device
+func (l *LampDevice) Run() (err error) {
+	if l.inputDevice == nil {
+		return fmt.Errorf("Lamp '%s' can't run, please map to an input first", l.name)
+	}
+	var changed bool
+	if changed, err = l.inputDevice.StateChanged(); err != nil {
+		return err
+	}
+	if !changed {
+		return
+	}
+	if l.inputDevice.IsOn() {
+		l.SwitchOn()
+	} else {
+		l.SwitchOff()
+	}
+	return
+}
+
+// ReleaseInput is used to unmap
+func (l *LampDevice) ReleaseInput() {
+	l.inputDevice = nil
 }
