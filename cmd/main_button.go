@@ -11,6 +11,13 @@ import (
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 )
 
+// Two buttons are used to switch on and off a lamp.
+// First button is used as normal button.
+// Second button is used as toggle button.
+//
+// For a breadboard schematic refer to docs/images/PCA9501_Lamps_Buttons.png
+// Just substidude the magnets with LED's and a 150Ohm resistor.
+
 const boardID = "IO_Mem_PCA9501"
 
 var boardRecipePca9501 = boardsapi.BoardRecipe{
