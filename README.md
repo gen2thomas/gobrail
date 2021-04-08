@@ -6,7 +6,7 @@ Basically i2c bus devices are used here.
 
 The easiest way to install is to run `go get -u github.com/gen2thomas/gobrail`.
 
-## Run without hardwrae & software modifications
+## Run without hardware & software modifications
 
 The hardware of "Typ 2" is needed together with digispark, than simply `make run`.
 
@@ -21,9 +21,7 @@ This is prototype software. It is a long way to make it work in real model railr
 
 ## TODO's
 
-* linting "board"
-* tests for "board"
-* add negotiation possibility
-* add next architecture levels (boardsapi, rail)
-* add sequences for rail devices (lamps, signals, track switches)
+* add next architecture levels (command interpreter)
+* add sequences for output rail devices (signals, track switches)
+* add sequences for input rail devices (toggle button)
 * add first locomotive decoder (hopefully possible to gobot i2c devices)

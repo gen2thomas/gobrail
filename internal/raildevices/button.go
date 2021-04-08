@@ -8,56 +8,44 @@ import (
 
 // ButtonDevice is describes a Button
 type ButtonDevice struct {
-	name       string
-	wasPressed bool
-	boardsAPI  BoardsAPIer
+	name      string
+	oldState  bool
+	boardsAPI BoardsAPIer
 }
 
 // NewButton creates an instance of a Button
-func NewButton(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string) (ld *ButtonDevice, err error) {
+func NewButton(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string) (b *ButtonDevice, err error) {
 	if err = boardsAPI.MapBinaryPin(boardID, boardPinNr, railDeviceName); err != nil {
 		return
 	}
-	ld = &ButtonDevice{
+	b = &ButtonDevice{
 		name:      railDeviceName,
 		boardsAPI: boardsAPI,
 	}
 	return
 }
 
-// IsPressed states true when Button is pressed
-func (l *ButtonDevice) IsPressed() (isPressed bool, err error) {
+// StateChanged states true when Button status was changed
+func (b *ButtonDevice) StateChanged() (hasChanged bool, err error) {
 	var value uint8
-	if value, err = l.boardsAPI.GetValue(l.name); err != nil {
-		err = fmt.Errorf("Can't read value from '%s', %w", l.name, err)
+	if value, err = b.boardsAPI.GetValue(b.name); err != nil {
+		err = fmt.Errorf("Can't read value from '%s', %w", b.name, err)
 		return
 	}
-	return value > 0, nil
+	newState := value > 0
+	if newState != b.oldState {
+		b.oldState = newState
+		hasChanged = true
+	}
+	return
 }
 
-// IsChanged states true when Button status was changed
-// The value can be read by WasPressed()
-func (l *ButtonDevice) IsChanged() (isChanged bool, err error) {
-	var value uint8
-	if value, err = l.boardsAPI.GetValue(l.name); err != nil {
-		err = fmt.Errorf("Can't read value from '%s', %w", l.name, err)
-		return
-	}
-	isPressed := value > 0
-	if isPressed == l.wasPressed {
-		return
-	}
-	l.wasPressed = isPressed
-	return true, nil
-}
-
-// WasPressed gets the state of the button last read from input
-// means last call of IsPressed() or IsChanged()
-func (l *ButtonDevice) WasPressed() bool {
-	return l.wasPressed
+// IsPressed gets the state of the button
+func (b *ButtonDevice) IsPressed() bool {
+	return b.oldState
 }
 
 // Name gets the name of the Button (rail device name)
-func (l *ButtonDevice) Name() string {
-	return l.name
+func (b *ButtonDevice) Name() string {
+	return b.name
 }

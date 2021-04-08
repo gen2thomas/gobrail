@@ -25,6 +25,7 @@ func main() {
 	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
 	loopCounter := 0
 	var button *raildevices.ButtonDevice
+	var togButton *raildevices.ToggleButtonDevice
 	var lamp1 *raildevices.LampDevice
 	var lamp2 *raildevices.LampDevice
 
@@ -34,6 +35,7 @@ func main() {
 				time.Sleep(2000 * time.Millisecond)
 				fmt.Printf("\n------ Init Button ------\n")
 				button, _ = raildevices.NewButton(boardAPI, boardID, 4, "Taste 1")
+				togButton, _ = raildevices.NewToggleButton(boardAPI, boardID, 5, "Taste 2")
 				lamp1, _ = raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
 				lamp2, _ = raildevices.NewLamp(boardAPI, boardID, 1, "Strassenlampe 2", raildevices.Timing{})
 				fmt.Printf("\n------ Now running ------\n")
@@ -45,19 +47,23 @@ func main() {
 				lamp1.SwitchOff()
 				lamp2.SwitchOff()
 			}
-			buttonPressed, _ := button.IsPressed()
-			if buttonPressed {
-				lamp1.SwitchOn()
-			} else {
-				lamp1.SwitchOff()
-			}
-			buttonChanged, _ := button.IsChanged()
-			if buttonChanged {
-				if button.WasPressed() {
+			//
+			if changed, _ := button.StateChanged(); changed {
+				if button.IsPressed() {
 					fmt.Printf("Button '%s' was pressed\n", button.Name())
-					lamp2.SwitchOn()
+					lamp1.SwitchOn()
 				} else {
 					fmt.Printf("Button '%s' released\n", button.Name())
+					lamp1.SwitchOff()
+				}
+			}
+			//
+			if changed, _ := togButton.StateChanged(); changed {
+				if togButton.IsOn() {
+					fmt.Printf("Toggle '%s' to on\n", togButton.Name())
+					lamp2.SwitchOn()
+				} else {
+					fmt.Printf("Toggle '%s' to off\n", togButton.Name())
 					lamp2.SwitchOff()
 				}
 			}
