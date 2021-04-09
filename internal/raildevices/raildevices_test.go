@@ -1,7 +1,12 @@
 package raildevices
 
 type BoardsAPIMock struct {
-	values map[string]uint8
+	values              map[string]uint8
+	callCounterBinMap   int
+	callCounterAnaMap   int
+	callCounterMemMap   int
+	callCounterSetValue int
+	callCounterGetValue int
 
 	apiMapBinaryImpl func(boardID string, boardPinNr uint8, railDeviceName string) (err error)
 	apiMapAnalogImpl func(boardID string, boardPinNr uint8, railDeviceName string) (err error)
@@ -39,17 +44,22 @@ func NewBoardsAPIMock() *BoardsAPIMock {
 }
 
 func (ba *BoardsAPIMock) MapBinaryPin(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
+	ba.callCounterBinMap++
 	return ba.apiMapBinaryImpl(boardID, boardPinNr, railDeviceName)
 }
 func (ba *BoardsAPIMock) MapAnalogPin(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
+	ba.callCounterAnaMap++
 	return ba.apiMapAnalogImpl(boardID, boardPinNr, railDeviceName)
 }
 func (ba *BoardsAPIMock) MapMemoryPin(boardID string, boardPinNrOrNegative int, railDeviceName string) (err error) {
+	ba.callCounterMemMap++
 	return ba.apiMapMemoryImpl(boardID, boardPinNrOrNegative, railDeviceName)
 }
 func (ba *BoardsAPIMock) GetValue(railDeviceName string) (value uint8, err error) {
+	ba.callCounterGetValue++
 	return ba.apiGetValueImpl(railDeviceName)
 }
 func (ba *BoardsAPIMock) SetValue(railDeviceName string, value uint8) (err error) {
+	ba.callCounterSetValue++
 	return ba.apiSetValueImpl(railDeviceName, value)
 }

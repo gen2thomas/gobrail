@@ -9,7 +9,8 @@ import (
 // ButtonDevice describes a Button
 type ButtonDevice struct {
 	name      string
-	oldState  bool
+	state     bool
+	oldState  map[string]bool
 	boardsAPI BoardsAPIer
 }
 
@@ -20,21 +21,23 @@ func NewButton(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDevi
 	}
 	b = &ButtonDevice{
 		name:      railDeviceName,
+		oldState:  make(map[string]bool),
 		boardsAPI: boardsAPI,
 	}
 	return
 }
 
 // StateChanged states true when Button status was changed
-func (b *ButtonDevice) StateChanged() (hasChanged bool, err error) {
+func (b *ButtonDevice) StateChanged(visitor string) (hasChanged bool, err error) {
 	var value uint8
 	if value, err = b.boardsAPI.GetValue(b.name); err != nil {
 		err = fmt.Errorf("Can't read value from '%s', %w", b.name, err)
 		return
 	}
-	newState := value > 0
-	if newState != b.oldState {
-		b.oldState = newState
+	b.state = value > 0
+	oldState, known := b.oldState[visitor]
+	if b.state != oldState || !known {
+		b.oldState[visitor] = b.state
 		hasChanged = true
 	}
 	return
@@ -42,7 +45,7 @@ func (b *ButtonDevice) StateChanged() (hasChanged bool, err error) {
 
 // IsOn gets the state of the button
 func (b *ButtonDevice) IsOn() bool {
-	return b.oldState
+	return b.state
 }
 
 // Name gets the name of the Button (rail device name)

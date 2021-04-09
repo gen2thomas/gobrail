@@ -86,13 +86,13 @@ func TestStateChangedIsOn(t *testing.T) {
 	button, _ := NewButton(api, "boardID", 3, "Button")
 	// act
 	state0 := button.IsOn()
-	changed1, err1 := button.StateChanged()
+	changed1, err1 := button.StateChanged("v")
 	state1 := button.IsOn()
-	changed2, err2 := button.StateChanged()
+	changed2, err2 := button.StateChanged("v")
 	state2 := button.IsOn()
-	changed3, err3 := button.StateChanged()
+	changed3, err3 := button.StateChanged("v")
 	state3 := button.IsOn()
-	changed4, err4 := button.StateChanged()
+	changed4, err4 := button.StateChanged("v")
 	state4 := button.IsOn()
 	// assert
 	require.Nil(err1)
@@ -121,7 +121,7 @@ func TestButtonStateChangedWhenReadErrorGetsError(t *testing.T) {
 	}
 	button, _ := NewButton(api, "boardID", 1, "Button")
 	// act
-	_, err := button.StateChanged()
+	_, err := button.StateChanged("v")
 	// assert
 	require.NotNil(err)
 	assert.Contains(err.Error(), "Can't read value from")

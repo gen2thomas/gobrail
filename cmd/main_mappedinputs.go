@@ -30,35 +30,25 @@ func main() {
 
 	adaptor := digispark.NewAdaptor()
 	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
-	loopCounter := 0
-	var button *raildevices.ButtonDevice
-	var togButton *raildevices.ToggleButtonDevice
-	var lamp1 *raildevices.LampDevice
-	var lamp2 *raildevices.LampDevice
+	// setup IO's
+	fmt.Printf("\n------ Init Inputs ------\n")
+	button, _ := raildevices.NewButton(boardAPI, boardID, 4, "Taste 1")
+	togButton, _ := raildevices.NewToggleButton(boardAPI, boardID, 5, "Taste 2")
+	fmt.Printf("\n------ Init Outputs ------\n")
+	lamp1, _ := raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
+	lamp2, _ := raildevices.NewLamp(boardAPI, boardID, 1, "Strassenlampe 2", raildevices.Timing{})
+	lamp3, _ := raildevices.NewLamp(boardAPI, boardID, 2, "Strassenlampe 3", raildevices.Timing{})
+	fmt.Printf("\n------ Map inputs to outputs ------\n")
+	lamp1.Map(button)
+	lamp2.Map(togButton)
+	lamp3.Map(lamp2) // lamp3 will be switched on after lamp2 is really on
+	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
-		gobot.Every(300*time.Millisecond, func() {
-			if loopCounter == 0 {
-				time.Sleep(2000 * time.Millisecond)
-				fmt.Printf("\n------ Init Button ------\n")
-				button, _ = raildevices.NewButton(boardAPI, boardID, 4, "Taste 1")
-				togButton, _ = raildevices.NewToggleButton(boardAPI, boardID, 5, "Taste 2")
-				lamp1, _ = raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
-				lamp2, _ = raildevices.NewLamp(boardAPI, boardID, 1, "Strassenlampe 2", raildevices.Timing{})
-				fmt.Printf("\n------ Mapped pins ------\n")
-				mPins := boardAPI.GetMappedAPIBinaryPins(boardID)
-				fmt.Println(mPins)
-				mPins = boardAPI.GetMappedAPIMemoryPins(boardID)
-				fmt.Println(mPins)
-				fmt.Printf("\n------ Map inputs ------\n")
-				lamp1.Map(button)
-				lamp2.Map(togButton)
-				fmt.Printf("\n------ Now running ------\n")
-			}
-			//
+		gobot.Every(50*time.Millisecond, func() {
+			lamp3.Run()
 			lamp1.Run()
 			lamp2.Run()
-			loopCounter++
 		})
 	}
 

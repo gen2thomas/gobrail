@@ -86,15 +86,15 @@ func TestToggleStateChangedIsOn(t *testing.T) {
 	toggleButton, _ := NewToggleButton(api, "boardID", 3, "ToggleButton")
 	// act
 	state0 := toggleButton.IsOn()
-	changed1, err1 := toggleButton.StateChanged()
+	changed1, err1 := toggleButton.StateChanged("v")
 	state1 := toggleButton.IsOn()
-	changed2, err2 := toggleButton.StateChanged()
+	changed2, err2 := toggleButton.StateChanged("v")
 	state2 := toggleButton.IsOn()
-	changed3, err3 := toggleButton.StateChanged()
+	changed3, err3 := toggleButton.StateChanged("v")
 	state3 := toggleButton.IsOn()
-	changed4, err4 := toggleButton.StateChanged()
+	changed4, err4 := toggleButton.StateChanged("v")
 	state4 := toggleButton.IsOn()
-	changed5, err5 := toggleButton.StateChanged()
+	changed5, err5 := toggleButton.StateChanged("v")
 	state5 := toggleButton.IsOn()
 	// assert
 	require.Nil(err1)
@@ -126,7 +126,7 @@ func TestToggleStateChangedWhenReadErrorGetsError(t *testing.T) {
 	}
 	toggleButton, _ := NewToggleButton(api, "boardID", 1, "ToggleButton")
 	// act
-	_, err := toggleButton.StateChanged()
+	_, err := toggleButton.StateChanged("v")
 	// assert
 	require.NotNil(err)
 	assert.Contains(err.Error(), "Can't read value from")

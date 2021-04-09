@@ -17,7 +17,7 @@ type BoardsAPIer interface {
 // have this functions it can be used as input for an successive device.
 type Inputer interface {
 	Name() string
-	StateChanged() (hasChanged bool, err error)
+	StateChanged(visitor string) (hasChanged bool, err error)
 	IsOn() bool
 }
 
