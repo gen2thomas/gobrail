@@ -23,8 +23,8 @@ This is prototype software. It is a long way to make it work in real model railr
 ## TODO's
 
 ### Hardware UI interaction
-* add sequences for output rail devices (signals, track switches)
-* interaction between strack switches and signals ("if left than green, else red")
+* add sequences for output rail devices (signal, railroad switch)
+* interaction between turnout and signal ("if left than green, else red" or vice versa)
 * add next architecture levels (command interpreter, rail runner)
 * add first locomotive decoder (hopefully possible to gobot i2c devices)
 

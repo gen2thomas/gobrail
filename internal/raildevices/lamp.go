@@ -27,6 +27,7 @@ func NewLamp(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDevice
 	}
 	ld = &LampDevice{
 		name:      railDeviceName,
+		timing:    timing,
 		oldState:  make(map[string]bool),
 		boardsAPI: boardsAPI,
 	}
@@ -35,10 +36,9 @@ func NewLamp(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDevice
 
 // StateChanged states true when lamp status was changed since last visit
 func (l *LampDevice) StateChanged(visitor string) (hasChanged bool, err error) {
-	newState := l.IsOn()
 	oldState, known := l.oldState[visitor]
-	if newState != oldState || !known {
-		l.oldState[visitor] = newState
+	if l.state != oldState || !known {
+		l.oldState[visitor] = l.state
 		hasChanged = true
 	}
 	return
@@ -60,7 +60,7 @@ func (l *LampDevice) SwitchOn() (err error) {
 		err = fmt.Errorf("Lamp '%s' is defective, please repair before switch on", l.name)
 		return
 	}
-	time.Sleep(l.timing.starting)
+	time.Sleep(l.timing.Starting)
 	if err = l.boardsAPI.SetValue(l.name, 1); err != nil {
 		return
 	}
@@ -70,7 +70,7 @@ func (l *LampDevice) SwitchOn() (err error) {
 
 // SwitchOff will switch off the lamp
 func (l *LampDevice) SwitchOff() (err error) {
-	time.Sleep(l.timing.stoping)
+	time.Sleep(l.timing.Stopping)
 	if err = l.boardsAPI.SetValue(l.name, 0); err != nil {
 		return
 	}

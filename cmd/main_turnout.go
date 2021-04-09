@@ -36,19 +36,19 @@ func main() {
 	togButton, _ := raildevices.NewToggleButton(boardAPI, boardID, 5, "Taste 2")
 	fmt.Printf("\n------ Init Outputs ------\n")
 	lamp1, _ := raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
-	lamp2, _ := raildevices.NewLamp(boardAPI, boardID, 1, "Strassenlampe 2", raildevices.Timing{})
-	lamp3, _ := raildevices.NewLamp(boardAPI, boardID, 2, "Strassenlampe 3", raildevices.Timing{})
+	turnout, _ := raildevices.NewTurnout(boardAPI, boardID, 1, "Weiche 1", 2, raildevices.Timing{Starting: 1000 * time.Millisecond, Stopping: 1000 * time.Millisecond})
+	signalOn, _ := raildevices.NewLamp(boardAPI, boardID, 3, "Signal On", raildevices.Timing{Starting: 500 * time.Millisecond})
 	fmt.Printf("\n------ Map inputs to outputs ------\n")
 	lamp1.Map(button)
-	lamp2.Map(togButton)
-	lamp3.Map(lamp2) // lamp3 will be switched on after lamp2 is really on
+	turnout.Map(togButton)
+	signalOn.Map(turnout)
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
 		gobot.Every(50*time.Millisecond, func() {
-			lamp3.Run()
 			lamp1.Run()
-			lamp2.Run()
+			turnout.Run()
+			signalOn.Run()
 		})
 	}
 

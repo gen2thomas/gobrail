@@ -34,6 +34,6 @@ type Outputer interface {
 
 // Timing is used for all kind of timing according to a rail device
 type Timing struct {
-	starting time.Duration
-	stoping  time.Duration
+	Starting time.Duration
+	Stopping time.Duration
 }
