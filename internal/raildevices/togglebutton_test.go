@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewToggleButton(t *testing.T) {
+func TestToggleButtonNew(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
@@ -47,7 +47,7 @@ func TestNewToggleButton(t *testing.T) {
 	// assert
 	require.Nil(err)
 	require.NotNil(toggleButton)
-	assert.Equal("ToggleButton", toggleButton.name)
+	assert.Equal("ToggleButton", toggleButton.railDeviceName)
 	assert.Equal(0, callCounterAnaMap)
 	assert.Equal(1, callCounterIOMap)
 	assert.Equal(expectedIOPin, usedBoardPinNrIOMap)
@@ -56,7 +56,7 @@ func TestNewToggleButton(t *testing.T) {
 	assert.Equal(0, callCounterSetValue)
 }
 
-func TestNewToggleButtonWhenBinMapErrorGetsError(t *testing.T) {
+func TestToggleButtonNewWhenBinMapErrorGetsError(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
@@ -72,7 +72,7 @@ func TestNewToggleButtonWhenBinMapErrorGetsError(t *testing.T) {
 	assert.Equal(expectedError, err)
 }
 
-func TestToggleStateChangedIsOn(t *testing.T) {
+func TestToggleButtonToggleStateChangedIsOn(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
@@ -115,7 +115,7 @@ func TestToggleStateChangedIsOn(t *testing.T) {
 	assert.Equal(false, state5)
 }
 
-func TestToggleStateChangedWhenReadErrorGetsError(t *testing.T) {
+func TestToggleButtonToggleStateChangedWhenReadErrorGetsError(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)

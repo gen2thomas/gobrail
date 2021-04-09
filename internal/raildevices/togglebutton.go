@@ -9,7 +9,7 @@ import (
 
 // ToggleButtonDevice describes a ToggleButton
 type ToggleButtonDevice struct {
-	name           string
+	railDeviceName string
 	oldState       bool
 	toggleState    bool
 	oldToggleState map[string]bool
@@ -22,7 +22,7 @@ func NewToggleButton(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, ra
 		return
 	}
 	ld = &ToggleButtonDevice{
-		name:           railDeviceName,
+		railDeviceName: railDeviceName,
 		oldToggleState: make(map[string]bool),
 		boardsAPI:      boardsAPI,
 	}
@@ -32,8 +32,8 @@ func NewToggleButton(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, ra
 // StateChanged states true when ToggleButton status was changed
 func (b *ToggleButtonDevice) StateChanged(visitor string) (hasChanged bool, err error) {
 	var value uint8
-	if value, err = b.boardsAPI.GetValue(b.name); err != nil {
-		err = fmt.Errorf("Can't read value from '%s', %w", b.name, err)
+	if value, err = b.boardsAPI.GetValue(b.railDeviceName); err != nil {
+		err = fmt.Errorf("Can't read value from '%s', %w", b.railDeviceName, err)
 		return
 	}
 	// toggle button
@@ -56,7 +56,7 @@ func (b *ToggleButtonDevice) IsOn() bool {
 	return b.toggleState
 }
 
-// Name gets the name of the ToggleButton (rail device name)
-func (b *ToggleButtonDevice) Name() string {
-	return b.name
+// RailDeviceName gets the name of the toggle button input
+func (b *ToggleButtonDevice) RailDeviceName() string {
+	return b.railDeviceName
 }

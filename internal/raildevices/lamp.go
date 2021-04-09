@@ -3,148 +3,79 @@ package raildevices
 // A lamp is a rail device used for
 // simple lamps, neon-light simulation, blinking lamps
 
-import (
-	"fmt"
-	"time"
-)
-
 // LampDevice is describes a lamp
 type LampDevice struct {
-	commonName     string
-	name           string
-	timing         Timing
-	oldState       map[string]bool
-	state          bool
-	defectiveState bool
-	boardsAPI      BoardsAPIer
-	inputDevice    Inputer
-	inputInversion bool
-	firstRun       bool
+	cmnOutDev *CommonOutputDevice
 }
 
 // NewLamp creates an instance of a lamp
 func NewLamp(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string, timing Timing) (ld *LampDevice, err error) {
-	if err = boardsAPI.MapBinaryPin(boardID, boardPinNr, railDeviceName); err != nil {
+	var co *CommonOutputDevice
+	if co, err = NewCommonOutput(boardsAPI, boardID, boardPinNr, railDeviceName, timing, "lamp"); err != nil {
 		return
 	}
 	ld = &LampDevice{
-		commonName: "lamp",
-		name:       railDeviceName,
-		timing:     timing,
-		oldState:   make(map[string]bool),
-		boardsAPI:  boardsAPI,
+		cmnOutDev: co,
 	}
 	return
 }
 
-// StateChanged states true when lamp status was changed since last visit
+// StateChanged states true when StdLamp status was changed since last visit
 func (l *LampDevice) StateChanged(visitor string) (hasChanged bool, err error) {
-	oldState, known := l.oldState[visitor]
-	if l.state != oldState || !known {
-		l.oldState[visitor] = l.state
-		hasChanged = true
-	}
-	return
+	return l.cmnOutDev.StateChanged(visitor)
 }
 
-// IsOn states true when lamp is on
+// IsOn states true when StdLamp is on
 func (l *LampDevice) IsOn() bool {
-	return l.state
+	return l.cmnOutDev.IsOn()
 }
 
-// IsDefective states true when lamp is defective
+// IsDefective states true when StdLamp is defective
 func (l *LampDevice) IsDefective() bool {
-	return l.defectiveState
+	return l.cmnOutDev.IsDefective()
 }
 
-// SwitchOn will try to switch on the lamp
+// SwitchOn will try to switch on the StdLamp
 func (l *LampDevice) SwitchOn() (err error) {
-	if l.IsDefective() {
-		err = fmt.Errorf("The %s '%s' is defective, please repair before switch on", l.commonName, l.name)
-		return
-	}
-	time.Sleep(l.timing.Starting)
-	if err = l.boardsAPI.SetValue(l.name, 1); err != nil {
-		return
-	}
-	l.state = true
-	return
+	return l.cmnOutDev.SwitchOn()
 }
 
-// SwitchOff will switch off the lamp
+// SwitchOff will switch off the StdLamp
 func (l *LampDevice) SwitchOff() (err error) {
-	time.Sleep(l.timing.Stopping)
-	if err = l.boardsAPI.SetValue(l.name, 0); err != nil {
-		return
-	}
-	l.state = false
-	return
+	return l.cmnOutDev.SwitchOff()
 }
 
-// MakeDefective causes the lamp in an simulated defective state
+// MakeDefective causes the StdLamp in an simulated defective state
 func (l *LampDevice) MakeDefective() (err error) {
-	if err = l.SwitchOff(); err != nil {
-		err = fmt.Errorf("Can't switch off before make defective, %w", err)
-		return
-	}
-	l.defectiveState = true
-	return
+	return l.cmnOutDev.MakeDefective()
 }
 
 // Repair will fix the simulated defective state
 func (l *LampDevice) Repair() (err error) {
-	if l.IsOn() {
-		return fmt.Errorf("The %s '%s' can be only repaired when off", l.commonName, l.name)
-	}
-	l.defectiveState = false
-	return
+	return l.cmnOutDev.Repair()
 }
 
-// Name gets the name of the lamp (rail device name)
-func (l *LampDevice) Name() string {
-	return l.name
+// RailDeviceName gets the name of the lamp output
+func (l *LampDevice) RailDeviceName() string {
+	return l.cmnOutDev.RailDeviceName()
 }
 
 // Connect is connecting an input for use in Run()
 func (l *LampDevice) Connect(inputDevice Inputer) (err error) {
-	if l.inputDevice != nil {
-		return fmt.Errorf("The %s '%s' is already mapped to an input '%s'", l.commonName, l.name, l.inputDevice.Name())
-	}
-	if l.name == inputDevice.Name() {
-		return fmt.Errorf("Circular mapping blocked for %s '%s'", l.commonName, l.name)
-	}
-	l.inputDevice = inputDevice
-	return nil
+	return l.cmnOutDev.Connect(inputDevice)
 }
 
 // ConnectInverse is connecting an input for use in Run(), but with inversed action
 func (l *LampDevice) ConnectInverse(inputDevice Inputer) (err error) {
-	l.Connect(inputDevice)
-	l.inputInversion = true
-	return nil
+	return l.cmnOutDev.ConnectInverse(inputDevice)
 }
 
 // Run is called in a loop and will make action dependant on the input device
 func (l *LampDevice) Run() (err error) {
-	if l.inputDevice == nil {
-		return fmt.Errorf("The %s '%s' can't run, please map to an input first", l.commonName, l.name)
-	}
-	var changed bool
-	if changed, err = l.inputDevice.StateChanged(l.name); err != nil {
-		return err
-	}
-	if !(changed || l.firstRun) {
-		return
-	}
-	if l.inputDevice.IsOn() != l.inputInversion {
-		l.SwitchOn()
-	} else {
-		l.SwitchOff()
-	}
-	return
+	return l.cmnOutDev.Run(l.cmnOutDev.SwitchOn, l.cmnOutDev.SwitchOff)
 }
 
 // ReleaseInput is used to unmap
 func (l *LampDevice) ReleaseInput() {
-	l.inputDevice = nil
+	l.cmnOutDev.ReleaseInput()
 }

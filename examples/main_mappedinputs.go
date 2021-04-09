@@ -40,12 +40,12 @@ func main() {
 	togButton, _ := raildevices.NewToggleButton(boardAPI, boardID, 5, "Taste 2")
 	fmt.Printf("\n------ Init Outputs ------\n")
 	lamp1, _ := raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
-	lamp2, _ := raildevices.NewLamp(boardAPI, boardID, 1, "Strassenlampe 2", raildevices.Timing{Starting: time.Second})
-	lamp3, _ := raildevices.NewLamp(boardAPI, boardID, 2, "Strassenlampe 3", raildevices.Timing{Starting: 500* time.Millisecond})
+	lamp2, _ := raildevices.NewLamp(boardAPI, boardID, 1, "Strassenlampe 2", raildevices.Timing{Starting: 500*time.Millisecond})
+	lamp3, _ := raildevices.NewLamp(boardAPI, boardID, 2, "Strassenlampe 3", raildevices.Timing{Starting: time.Second, Stopping: time.Second})
 	fmt.Printf("\n------ Map inputs to outputs ------\n")
-	lamp1.Map(button)
-	lamp2.Map(togButton)
-	lamp3.Map(lamp2) // lamp3 will be switched on after lamp2 is really on
+	lamp1.Connect(button)
+	lamp2.Connect(togButton)
+	lamp3.ConnectInverse(lamp2) // lamp3 will be switched off after lamp2 is really on
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {

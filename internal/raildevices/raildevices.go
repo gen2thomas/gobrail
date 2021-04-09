@@ -16,14 +16,14 @@ type BoardsAPIer interface {
 // Inputer is an interface for input devices to map in output devices. When an output device
 // have this functions it can be used as input for an successive device.
 type Inputer interface {
-	Name() string
+	RailDeviceName() string
 	StateChanged(visitor string) (hasChanged bool, err error)
 	IsOn() bool
 }
 
 // Outputer is an interface for output devices
 type Outputer interface {
-	Name() string
+	RailDeviceName() string
 	// Connect is to use an input for action (IsOn --> e.g. SwitchOn)
 	Connect(input Inputer) (err error)
 	// ConnectIverse to use an input for inverse action (IsOn --> e.g. SwitchOff)

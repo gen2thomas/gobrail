@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewLamp(t *testing.T) {
+func TestCommonOutputNew(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
@@ -20,11 +20,12 @@ func TestNewLamp(t *testing.T) {
 		return nil
 	}
 	// act
-	lamp, err := NewLamp(api, "boardID", expectedIOPin, "lamp", Timing{})
+	lamp, err := NewCommonOutput(api, "boardID", expectedIOPin, "lamp dev", Timing{}, "lamp")
 	// assert
 	require.Nil(err)
 	require.NotNil(lamp)
-	assert.Equal("lamp", lamp.name)
+	assert.Equal("lamp dev", lamp.railDeviceName)
+	assert.Equal("lamp", lamp.label)
 	assert.Equal(false, lamp.IsOn())
 	assert.Equal(false, lamp.IsDefective())
 	stateChanged, _ := lamp.StateChanged("v")
@@ -37,7 +38,7 @@ func TestNewLamp(t *testing.T) {
 	assert.Equal(expectedIOPin, usedBoardPinNrIOMap)
 }
 
-func TestNewLampWhenBinMapErrorGetsError(t *testing.T) {
+func TestCommonOutputNewWhenBinMapErrorGetsError(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
@@ -47,18 +48,18 @@ func TestNewLampWhenBinMapErrorGetsError(t *testing.T) {
 		return expectedError
 	}
 	// act
-	_, err := NewLamp(api, "boardID", 2, "lamp", Timing{})
+	_, err := NewCommonOutput(api, "boardID", 2, "lamp dev", Timing{}, "lamp")
 	// assert
 	require.NotNil(err)
 	assert.Equal(expectedError, err)
 }
 
-func TestIsOnSwitchOnSwitchOffStateChanged(t *testing.T) {
+func TestCommonOutputIsOnSwitchOnSwitchOffStateChanged(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
 	api := NewBoardsAPIMock()
-	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
+	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
 	// act
 	stateChanged0, _ := lamp.StateChanged("v")
 	state0 := lamp.IsOn()
@@ -95,12 +96,12 @@ func TestIsOnSwitchOnSwitchOffStateChanged(t *testing.T) {
 	assert.Equal(false, state4)
 }
 
-func TestIsDefectiveMakeDefectiveRepairStateChanged(t *testing.T) {
+func TestCommonOutputIsDefectiveMakeDefectiveRepairStateChanged(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
 	api := NewBoardsAPIMock()
-	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
+	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
 	// act
 	state0 := lamp.IsDefective()
 	stateChanged0, _ := lamp.StateChanged("v")
@@ -123,12 +124,12 @@ func TestIsDefectiveMakeDefectiveRepairStateChanged(t *testing.T) {
 	assert.Equal(false, state2)
 }
 
-func TestSwitchOnWhenIsDefectiveGetsError(t *testing.T) {
+func TestCommonOutputSwitchOnWhenIsDefectiveGetsError(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
 	api := NewBoardsAPIMock()
-	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
+	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
 	// act
 	stateChanged0, _ := lamp.StateChanged("v")
 	err1 := lamp.MakeDefective()
@@ -141,12 +142,12 @@ func TestSwitchOnWhenIsDefectiveGetsError(t *testing.T) {
 	assert.Equal(false, stateChanged1)
 }
 
-func TestMakeDefectiveWillSwitchOff(t *testing.T) {
+func TestCommonOutputMakeDefectiveWillSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
 	api := NewBoardsAPIMock()
-	lamp, _ := NewLamp(api, "boardID", 1, "lamp", Timing{})
+	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
 	// act
 	err1 := lamp.SwitchOn()
 	err2 := lamp.MakeDefective()

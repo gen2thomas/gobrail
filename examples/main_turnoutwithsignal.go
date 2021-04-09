@@ -1,3 +1,7 @@
+// +build example
+//
+// Do not build by default.
+
 package main
 
 import (
@@ -43,8 +47,12 @@ func main() {
 
 	work := func() {
 		gobot.Every(50*time.Millisecond, func() {
-			redgreensignal.Run()
-			turnout.Run()
+			if err := redgreensignal.Run(); err != nil{
+				fmt.Println(err)
+			}
+			if err := turnout.Run(); err != nil{
+				fmt.Println(err)
+			}
 		})
 	}
 

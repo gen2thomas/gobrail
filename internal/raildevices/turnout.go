@@ -5,7 +5,6 @@ package raildevices
 // Second difference: A standard model turnout needs 2 physical outputs (left, right).
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -13,21 +12,14 @@ const maxTime = time.Duration(time.Second)
 
 // TurnoutDevice is describes a turnout
 type TurnoutDevice struct {
-	commonName       string
-	name             string
-	nameBranch       string
-	timing           Timing
-	oldStateToBranch map[string]bool
-	stateToBranch    bool
-	boardsAPI        BoardsAPIer
-	inputDevice      Inputer
-	inputInversion   bool
-	firstRun         bool
+	railDeviceNameBranch string
+	cmnOutDev            *CommonOutputDevice
 }
 
 // NewTurnout creates an instance of a turnout
 func NewTurnout(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string, boardPinNrBranch uint8, timing Timing) (s *TurnoutDevice, err error) {
-	if err = boardsAPI.MapBinaryPin(boardID, boardPinNr, railDeviceName); err != nil {
+	var co *CommonOutputDevice
+	if co, err = NewCommonOutput(boardsAPI, boardID, boardPinNr, railDeviceName, limitTiming(timing, maxTime), "turnout"); err != nil {
 		return
 	}
 	railDeviceNameBranch := railDeviceName + " branch"
@@ -35,24 +27,41 @@ func NewTurnout(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDev
 		return
 	}
 	s = &TurnoutDevice{
-		commonName:       "turnout",
-		name:             railDeviceName,
-		nameBranch:       railDeviceNameBranch,
-		timing:           limitTiming(timing),
-		oldStateToBranch: make(map[string]bool),
-		boardsAPI:        boardsAPI,
+		railDeviceNameBranch: railDeviceNameBranch,
+		cmnOutDev:            co,
 	}
+	return
+}
+
+// SwitchOn will try to switch the turnout to diverging route
+func (s *TurnoutDevice) SwitchOn() (err error) {
+	if err = s.cmnOutDev.BoardsAPI.SetValue(s.railDeviceNameBranch, 1); err != nil {
+		return
+	}
+	s.cmnOutDev.TimingForStart()
+	if err = s.cmnOutDev.BoardsAPI.SetValue(s.railDeviceNameBranch, 0); err != nil {
+		return
+	}
+	s.cmnOutDev.SetState(true)
+	return
+}
+
+// SwitchOff will switch the turnout to main route
+func (s *TurnoutDevice) SwitchOff() (err error) {
+	if err = s.cmnOutDev.BoardsAPI.SetValue(s.RailDeviceName(), 1); err != nil {
+		return
+	}
+	s.cmnOutDev.TimingForStop()
+	if err = s.cmnOutDev.BoardsAPI.SetValue(s.RailDeviceName(), 0); err != nil {
+		return
+	}
+	s.cmnOutDev.SetState(false)
 	return
 }
 
 // StateChanged states true when turnout status was changed since last visit
 func (s *TurnoutDevice) StateChanged(visitor string) (hasChanged bool, err error) {
-	oldStateToBranch, known := s.oldStateToBranch[visitor]
-	if s.stateToBranch != oldStateToBranch || !known {
-		s.oldStateToBranch[visitor] = s.stateToBranch
-		hasChanged = true
-	}
-	return
+	return s.cmnOutDev.StateChanged(visitor)
 }
 
 // IsOn means the track switch is switched to this direction, that the train will run
@@ -63,90 +72,30 @@ func (s *TurnoutDevice) StateChanged(visitor string) (hasChanged bool, err error
 //               ||  --> IsOn = true  (train runs the inner circle)
 //              //
 func (s *TurnoutDevice) IsOn() bool {
-	return s.stateToBranch
+	return s.cmnOutDev.IsOn()
 }
 
-// SwitchOn will try to switch on the turnout to diverging route
-func (s *TurnoutDevice) SwitchOn() (err error) {
-	if err = s.boardsAPI.SetValue(s.nameBranch, 1); err != nil {
-		return
-	}
-	time.Sleep(s.timing.Starting)
-	if err = s.boardsAPI.SetValue(s.nameBranch, 0); err != nil {
-		return
-	}
-	s.stateToBranch = true
-	return
-}
-
-// SwitchOff will switch off the turnout to main route
-func (s *TurnoutDevice) SwitchOff() (err error) {
-	if err = s.boardsAPI.SetValue(s.name, 1); err != nil {
-		return
-	}
-	time.Sleep(s.timing.Stopping)
-	if err = s.boardsAPI.SetValue(s.name, 0); err != nil {
-		return
-	}
-	s.stateToBranch = false
-	return
-}
-
-// Name gets the name of the turnout (rail device name)
-func (s *TurnoutDevice) Name() string {
-	return s.name
+// RailDeviceName gets the name of the turnout common output
+func (s *TurnoutDevice) RailDeviceName() string {
+	return s.cmnOutDev.RailDeviceName()
 }
 
 // Connect is connecting an input for use in Run()
 func (s *TurnoutDevice) Connect(inputDevice Inputer) (err error) {
-	if s.inputDevice != nil {
-		return fmt.Errorf("The %s '%s' is already mapped to an input '%s'", s.commonName, s.name, s.inputDevice.Name())
-	}
-	if s.name == inputDevice.Name() {
-		return fmt.Errorf("Circular mapping blocked for %s '%s'", s.commonName, s.name)
-	}
-	s.inputDevice = inputDevice
-	return nil
+	return s.cmnOutDev.Connect(inputDevice)
 }
 
 // ConnectInverse is connecting an input for use in Run(), but with inversed action
 func (s *TurnoutDevice) ConnectInverse(inputDevice Inputer) (err error) {
-	s.Connect(inputDevice)
-	s.inputInversion = true
-	return nil
+	return s.cmnOutDev.ConnectInverse(inputDevice)
 }
 
 // Run is called in a loop and will make action dependant on the input device
 func (s *TurnoutDevice) Run() (err error) {
-	if s.inputDevice == nil {
-		return fmt.Errorf("The %s '%s' can't run, please map to an input first", s.commonName, s.name)
-	}
-	var changed bool
-	if changed, err = s.inputDevice.StateChanged(s.name); err != nil {
-		return err
-	}
-	if !(changed || s.firstRun) {
-		return
-	}
-	if s.inputDevice.IsOn() != s.inputInversion {
-		s.SwitchOn()
-	} else {
-		s.SwitchOff()
-	}
-	return
+	return s.cmnOutDev.Run(s.SwitchOn, s.SwitchOff)
 }
 
 // ReleaseInput is used to unmap
 func (s *TurnoutDevice) ReleaseInput() {
-	s.inputDevice = nil
-}
-
-func limitTiming(timing Timing) Timing {
-	if timing.Starting > maxTime {
-		timing.Starting = maxTime
-	}
-	if timing.Stopping > maxTime {
-		timing.Stopping = maxTime
-	}
-	return timing
+	s.cmnOutDev.ReleaseInput()
 }
