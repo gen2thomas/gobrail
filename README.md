@@ -9,6 +9,7 @@ The easiest way to install is to run `go get -u github.com/gen2thomas/gobrail`.
 ## Run without hardware & software modifications
 
 The hardware of "Typ 2" is needed together with digispark, than simply `make run`.
+Please have a look at docs/images/PCA9501_Lamps_Buttons.png for using with a breadboard.
 
 ## Run with another hardware
 
@@ -21,7 +22,14 @@ This is prototype software. It is a long way to make it work in real model railr
 
 ## TODO's
 
-* add next architecture levels (command interpreter)
+### Hardware UI interaction
 * add sequences for output rail devices (signals, track switches)
-* add sequences for input rail devices (toggle button)
+* interaction between strack switches and signals ("if left than green, else red")
+* add next architecture levels (command interpreter, rail runner)
 * add first locomotive decoder (hopefully possible to gobot i2c devices)
+
+### Software UI interaction
+* virtual boards (a button or lamp can be mapped to an virtual IO, which provides an "external service")
+
+### General
+* improve timing by using events
