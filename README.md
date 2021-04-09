@@ -20,16 +20,30 @@ Using another adaptor is also possible. Please see the gobot documentation.
 
 This is prototype software. It is a long way to make it work in real model railroad environment.
 
+### Supported output rail devices
+* lamp - single output on/off
+* two light signal - two outputs green on -> red off and vice versa
+* turnout - two outputs on for 0-1sec to switch between main and branch
+
+### Supported input rail devices
+* button - read one input
+* toggle button - read one input, use rising edge to change the state
+
+### Instantiating and connecting devices
+* possible with simple go programming knowledge before main loop, see examples
+
+### Running
+* possible with simple go programming knowledge in main loop, see examples
+
 ## TODO's
 
+### General
+* improve timing by using events and/or parallelism
+
 ### Hardware UI interaction
-* add sequences for output rail devices (signal, railroad switch)
-* interaction between turnout and signal ("if left than green, else red" or vice versa)
-* add next architecture levels (command interpreter, rail runner)
+* add rail runner
+* add configuration interface
 * add first locomotive decoder (hopefully possible to gobot i2c devices)
 
 ### Software UI interaction
 * virtual boards (a button or lamp can be mapped to an virtual IO, which provides an "external service")
-
-### General
-* improve timing by using events
