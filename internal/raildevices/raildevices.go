@@ -24,8 +24,10 @@ type Inputer interface {
 // Outputer is an interface for output devices
 type Outputer interface {
 	Name() string
-	// Map is used to map an input for action (IsOn --> e.g. SwitchOn)
-	Map(input Inputer) (err error)
+	// Connect is to use an input for action (IsOn --> e.g. SwitchOn)
+	Connect(input Inputer) (err error)
+	// ConnectIverse to use an input for inverse action (IsOn --> e.g. SwitchOff)
+	ConnectInverse(input Inputer) (err error)
 	// Run must be called in a loop
 	Run() (err error)
 	// ReleaseInput is used to unmap the input

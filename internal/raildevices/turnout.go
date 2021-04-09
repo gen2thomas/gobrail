@@ -13,6 +13,7 @@ const maxTime = time.Duration(time.Second)
 
 // TurnoutDevice is describes a turnout
 type TurnoutDevice struct {
+	commonName       string
 	name             string
 	nameBranch       string
 	timing           Timing
@@ -20,6 +21,7 @@ type TurnoutDevice struct {
 	stateToBranch    bool
 	boardsAPI        BoardsAPIer
 	inputDevice      Inputer
+	inputInversion   bool
 	firstRun         bool
 }
 
@@ -33,6 +35,7 @@ func NewTurnout(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDev
 		return
 	}
 	s = &TurnoutDevice{
+		commonName:       "turnout",
 		name:             railDeviceName,
 		nameBranch:       railDeviceNameBranch,
 		timing:           limitTiming(timing),
@@ -63,7 +66,7 @@ func (s *TurnoutDevice) IsOn() bool {
 	return s.stateToBranch
 }
 
-// SwitchOn will try to switch on the turnout
+// SwitchOn will try to switch on the turnout to diverging route
 func (s *TurnoutDevice) SwitchOn() (err error) {
 	if err = s.boardsAPI.SetValue(s.nameBranch, 1); err != nil {
 		return
@@ -76,7 +79,7 @@ func (s *TurnoutDevice) SwitchOn() (err error) {
 	return
 }
 
-// SwitchOff will switch off the turnout
+// SwitchOff will switch off the turnout to main route
 func (s *TurnoutDevice) SwitchOff() (err error) {
 	if err = s.boardsAPI.SetValue(s.name, 1); err != nil {
 		return
@@ -94,22 +97,29 @@ func (s *TurnoutDevice) Name() string {
 	return s.name
 }
 
-// Map is mapping an input for use in Run()
-func (s *TurnoutDevice) Map(inputDevice Inputer) (err error) {
+// Connect is connecting an input for use in Run()
+func (s *TurnoutDevice) Connect(inputDevice Inputer) (err error) {
 	if s.inputDevice != nil {
-		return fmt.Errorf("turnout '%s' is already mapped to an input '%s'", s.name, s.inputDevice.Name())
+		return fmt.Errorf("The %s '%s' is already mapped to an input '%s'", s.commonName, s.name, s.inputDevice.Name())
 	}
 	if s.name == inputDevice.Name() {
-		return fmt.Errorf("Circular mapping blocked for turnout '%s'", s.name)
+		return fmt.Errorf("Circular mapping blocked for %s '%s'", s.commonName, s.name)
 	}
 	s.inputDevice = inputDevice
+	return nil
+}
+
+// ConnectInverse is connecting an input for use in Run(), but with inversed action
+func (s *TurnoutDevice) ConnectInverse(inputDevice Inputer) (err error) {
+	s.Connect(inputDevice)
+	s.inputInversion = true
 	return nil
 }
 
 // Run is called in a loop and will make action dependant on the input device
 func (s *TurnoutDevice) Run() (err error) {
 	if s.inputDevice == nil {
-		return fmt.Errorf("turnout '%s' can't run, please map to an input first", s.name)
+		return fmt.Errorf("The %s '%s' can't run, please map to an input first", s.commonName, s.name)
 	}
 	var changed bool
 	if changed, err = s.inputDevice.StateChanged(s.name); err != nil {
@@ -118,7 +128,7 @@ func (s *TurnoutDevice) Run() (err error) {
 	if !(changed || s.firstRun) {
 		return
 	}
-	if s.inputDevice.IsOn() {
+	if s.inputDevice.IsOn() != s.inputInversion {
 		s.SwitchOn()
 	} else {
 		s.SwitchOff()

@@ -11,9 +11,8 @@ import (
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 )
 
-// Two buttons are used to switch on and off a lamp.
-// First button is used as normal button.
-// Second button is used as toggle button.
+// A toggle button is used to change the state of the railroad switch.
+// Afterwards a red/green signal is switched without any delay.
 //
 // For a breadboard schematic refer to docs/images/PCA9501_Lamps_Buttons.png
 // Just substidude the magnets with LED's and a 150Ohm resistor.
@@ -32,27 +31,24 @@ func main() {
 	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
 	// setup IO's
 	fmt.Printf("\n------ Init Inputs ------\n")
-	button, _ := raildevices.NewButton(boardAPI, boardID, 4, "Taste 1")
+	//button, _ := raildevices.NewButton(boardAPI, boardID, 4, "Taste 1")
 	togButton, _ := raildevices.NewToggleButton(boardAPI, boardID, 5, "Taste 2")
 	fmt.Printf("\n------ Init Outputs ------\n")
-	lamp1, _ := raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
-	turnout, _ := raildevices.NewTurnout(boardAPI, boardID, 1, "Weiche 1", 2, raildevices.Timing{Starting: 1000 * time.Millisecond, Stopping: 1000 * time.Millisecond})
-	signalOn, _ := raildevices.NewLamp(boardAPI, boardID, 3, "Signal On", raildevices.Timing{Starting: 500 * time.Millisecond})
+	turnout, _ := raildevices.NewTurnout(boardAPI, boardID, 0, "Weiche 1", 3, raildevices.Timing{Starting: 500 * time.Millisecond, Stopping: 500 * time.Millisecond})
+	redgreensignal, _ := raildevices.NewTwoLightSignal(boardAPI, boardID, 2, "Signal rot grün", 1, raildevices.Timing{})
 	fmt.Printf("\n------ Map inputs to outputs ------\n")
-	lamp1.Map(button)
-	turnout.Map(togButton)
-	signalOn.Map(turnout)
+	turnout.Connect(togButton)
+	redgreensignal.Connect(turnout)
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
 		gobot.Every(50*time.Millisecond, func() {
-			lamp1.Run()
+			redgreensignal.Run()
 			turnout.Run()
-			signalOn.Run()
 		})
 	}
 
-	robot := gobot.NewRobot("play with button and lamp",
+	robot := gobot.NewRobot("play with button, turnout and light signal",
 		[]gobot.Connection{adaptor},
 		boardAPI.GobotDevices(),
 		work,

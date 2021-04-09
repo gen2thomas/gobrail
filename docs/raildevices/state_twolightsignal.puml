@@ -1,0 +1,15 @@
+@startuml
+GreenOff : green lamp is off
+GreenOn : green lamp is on
+RedOff : red lamp is off
+RedOn : red lamp is on
+Starting : red lamp stop in progress
+Stopping : green lamp stop in progress
+[*] --> RedOn
+RedOn --> Starting : switch green on
+Starting --> RedOff : start procedure finished
+RedOff -left-> GreenOn : green on immediatally
+GreenOn -up-> Stopping : switch  red on
+Stopping -up-> GreenOff :  stop procedure finished
+GreenOff -right-> RedOn :  red on immediatelly
+@enduml
