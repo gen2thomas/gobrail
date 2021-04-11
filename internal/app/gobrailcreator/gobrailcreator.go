@@ -6,28 +6,28 @@ package gobrailcreator
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/i2c"
 
-	"github.com/gen2thomas/gobrail/internal/boardpin"
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
+	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
 )
 
-// RailDevice can run in loops
-type RailDevice interface {
-	raildevices.Outputer
-	raildevices.Inputer
+// BoardsConfigAPIer is an interface for interact with a boards API
+type BoardsConfigAPIer interface {
+	GobotDevices() []gobot.Device
+	AddBoard(boardRecipe boardsapi.BoardRecipe) (err error)
+	RemoveBoard(boardID string)
 }
 
-// BoardsAPIer is an interface for interact with a boards API2
-type BoardsAPIer interface {
-	GobotDevices() []gobot.Device
-	GetInputPin(boardID string, boardPinNr uint8) (boardPin *boardpin.Input, err error)
-	GetOutputPin(boardID string, boardPinNr uint8) (boardPin *boardpin.Output, err error)
+// RailDevicesAPIer is an interface to interact with rail devices
+type RailDevicesAPIer interface {
+	AddDevice(raildevicesapi.RailDeviceRecipe) (err error)
+	ConnectNow() (err error)
+	Run()
 }
 
 const boardID = "IO_Mem_PCA9501"
@@ -38,95 +38,70 @@ var boardRecipePca9501 = boardsapi.BoardRecipe{
 	BoardType:   boardsapi.Typ2,
 }
 
-var usedDevices = make(map[string]struct{})
-var runningDevices []raildevices.Outputer
-var boardAPI BoardsAPIer
-
-// Create will create a static device connection for run
-func Create(adaptor i2c.Connector) (err error) {
-	boardAPI = boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
-	if boardAPI == nil {
-		return fmt.Errorf("BoardsAPI can't created")
-	}
-
-	fmt.Printf("\n------ Init Inputs ------\n")
-	togButton := createToggleButton("Taste 2", boardRecipePca9501.Name, 5)
-	button := createButton("Taste 1", boardRecipePca9501.Name, 4)
-	fmt.Printf("\n------ Init Outputs ------\n")
-	lampY1 := createLamp("Signal rot", boardRecipePca9501.Name, 0, raildevices.Timing{Stopping: 50 * time.Millisecond})
-	lampY2 := createLamp("Signal grün", boardRecipePca9501.Name, 3, raildevices.Timing{})
-	signal := createTwoLightSignal("Rot grün Signal", boardRecipePca9501.Name, 2, 1, raildevices.Timing{})
-	fmt.Printf("\n------ Map inputs to outputs ------\n")
-	lampY1.Connect(button)
-	lampY2.Connect(lampY1)
-	signal.Connect(togButton)
-	runningDevices = append(runningDevices, lampY1)
-	runningDevices = append(runningDevices, lampY2)
-	runningDevices = append(runningDevices, signal)
-	return
+var deviceRecipeTaste1 = raildevicesapi.RailDeviceRecipe{
+	Name:       "Taste 1",
+	Type:       raildevicesapi.Button,
+	BoardID:    boardID,
+	BoardPinNr: 4,
 }
 
-// Run calls the run functions of all devices
-func Run() {
-	for _, runningDevice := range runningDevices {
-		runningDevice.Run()
-	}
+var deviceRecipeTaste2 = raildevicesapi.RailDeviceRecipe{
+	Name:       "Taste 2",
+	Type:       raildevicesapi.ToggleButton,
+	BoardID:    boardID,
+	BoardPinNr: 5,
+}
+
+var deviceRecipeSignalRot = raildevicesapi.RailDeviceRecipe{
+	Name:       "Signal rot",
+	Type:       raildevicesapi.Lamp,
+	BoardID:    boardID,
+	BoardPinNr: 0,
+	Timing:     raildevices.Timing{Stopping: 50 * time.Millisecond},
+	Connect:    "Taste 1",
+}
+
+var deviceRecipeSignalGruen = raildevicesapi.RailDeviceRecipe{
+	Name:       "Signal grün",
+	Type:       raildevicesapi.Lamp,
+	BoardID:    boardID,
+	BoardPinNr: 3,
+	Timing:     raildevices.Timing{},
+	Connect:    "Signal rot",
+}
+
+var deviceRecipeSignalRotGruen = raildevicesapi.RailDeviceRecipe{
+	Name:             "Rot grün Signal",
+	Type:             raildevicesapi.TwoLightsSignal,
+	BoardID:          boardID,
+	BoardPinNr:       2,
+	BoardPinNrSecond: 1,
+	Timing:           raildevices.Timing{},
+	Connect:          "Taste 2",
+}
+
+var boardCfgAPI BoardsConfigAPIer
+
+// Create will create a static device connection for run
+func Create(adaptor i2c.Connector) (deviceAPI RailDevicesAPIer, err error) {
+	fmt.Printf("\n------ Init Boards ------\n")
+	boardsAPI := boardsapi.NewBoardsAPI(adaptor)
+	boardsAPI.AddBoard(boardRecipePca9501)
+	fmt.Printf("\n------ Init Inputs ------\n")
+	deviceAPI = raildevicesapi.NewRailDevicesAPI(boardsAPI)
+	deviceAPI.AddDevice(deviceRecipeTaste1) // button
+	deviceAPI.AddDevice(deviceRecipeTaste2) // togButton
+	fmt.Printf("\n------ Init Outputs ------\n")
+	deviceAPI.AddDevice(deviceRecipeSignalRot)      // lampY1
+	deviceAPI.AddDevice(deviceRecipeSignalGruen)    // lampY2
+	deviceAPI.AddDevice(deviceRecipeSignalRotGruen) // signal
+	fmt.Printf("\n------ Map inputs to outputs ------\n")
+	deviceAPI.ConnectNow()
+	boardCfgAPI = boardsAPI
+	return
 }
 
 // GobotDevices gets all gobot devices of all boards
 func GobotDevices() []gobot.Device {
-	return boardAPI.GobotDevices()
-}
-
-func getFreeKey(railDeviceName string) (railDeviceKey string, err error) {
-	railDeviceKey = strings.Replace(strings.ToLower(railDeviceName), " ", "_", -1)
-	if _, ok := usedDevices[railDeviceKey]; ok {
-		return "", fmt.Errorf("Rail device '%s' (key: %s) already in use", railDeviceName, railDeviceKey)
-	}
-	return
-}
-
-func createButton(railDeviceName string, boardID string, boardPinNr uint8) (button raildevices.Inputer) {
-	railDeviceKey, _ := getFreeKey(railDeviceName)
-	input, _ := boardAPI.GetInputPin(boardID, boardPinNr)
-	button = raildevices.NewButton(input, railDeviceName)
-	usedDevices[railDeviceKey] = struct{}{}
-	return
-}
-
-func createToggleButton(railDeviceName string, boardID string, boardPinNr uint8) (toggleButton raildevices.Inputer) {
-	railDeviceKey, _ := getFreeKey(railDeviceName)
-	input, _ := boardAPI.GetInputPin(boardID, boardPinNr)
-	toggleButton = raildevices.NewToggleButton(input, railDeviceName)
-	usedDevices[railDeviceKey] = struct{}{}
-	return
-}
-
-func createLamp(railDeviceName string, boardID string, boardPinNr uint8, timing raildevices.Timing) (lamp RailDevice) {
-	railDeviceKey, _ := getFreeKey(railDeviceName)
-	co := raildevices.NewCommonOutput(railDeviceName, timing, "lamp")
-	output, _ := boardAPI.GetOutputPin(boardID, boardPinNr)
-	lamp = raildevices.NewLamp(co, output)
-	usedDevices[railDeviceKey] = struct{}{}
-	return
-}
-
-func createTwoLightSignal(railDeviceName string, boardID string, boardPinNrPass uint8, boardPinNrStop uint8, timing raildevices.Timing) (signal RailDevice) {
-	railDeviceKey, _ := getFreeKey(railDeviceName)
-	outputPass, _ := boardAPI.GetOutputPin(boardID, boardPinNrPass)
-	outputStop, _ := boardAPI.GetOutputPin(boardID, boardPinNrStop)
-	co := raildevices.NewCommonOutput(railDeviceName, timing, "two light signal")
-	signal = raildevices.NewTwoLightsSignal(co, outputPass, outputStop)
-	usedDevices[railDeviceKey] = struct{}{}
-	return
-}
-
-func createTurnout(railDeviceName string, boardID string, boardPinNrBranch uint8, boardPinNrMain uint8, timing raildevices.Timing) (turnout RailDevice) {
-	railDeviceKey, _ := getFreeKey(railDeviceName)
-	outputBranch, _ := boardAPI.GetOutputPin(boardID, boardPinNrBranch)
-	outputMain, _ := boardAPI.GetOutputPin(boardID, boardPinNrMain)
-	co := raildevices.NewCommonOutput(railDeviceName, timing, "turnout")
-	turnout = raildevices.NewTurnout(co, outputBranch, outputMain)
-	usedDevices[railDeviceKey] = struct{}{}
-	return
+	return boardCfgAPI.GobotDevices()
 }

@@ -41,7 +41,8 @@ func TestNewBoardsAPI(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	// act
-	api := NewBoardsAPI(new(adaptorMock), []BoardRecipe{boardRecipeTyp2})
+	api := NewBoardsAPI(new(adaptorMock))
+	api.AddBoard(boardRecipeTyp2)
 	// assert
 	require.Equal(1, len(api.boards))
 	require.Equal(1, len(api.usedPins))
@@ -54,7 +55,8 @@ func TestNewBoardsAPIWithUnknownTypeGetsEmptyBoards(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	// act
-	api := NewBoardsAPI(new(adaptorMock), []BoardRecipe{boardRecipeUnknown})
+	api := NewBoardsAPI(new(adaptorMock))
+	api.AddBoard(boardRecipeUnknown)
 	// assert
 	require.NotNil(*api)
 	assert.Equal("No Boards\n", fmt.Sprintf("%s", api))

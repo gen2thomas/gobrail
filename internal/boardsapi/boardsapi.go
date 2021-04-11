@@ -71,26 +71,38 @@ type BoardsMap map[string]Boarder
 type BoardsAPI struct {
 	usedPins map[string]boardpin.PinNumbers
 	boards   BoardsMap
+	adaptor  i2c.Connector
 }
 
 // NewBoardsAPI creates a new API access
-func NewBoardsAPI(adaptor i2c.Connector, boardRecipes []BoardRecipe) *BoardsAPI {
-	bi := &BoardsAPI{
+func NewBoardsAPI(adaptor i2c.Connector) *BoardsAPI {
+	return &BoardsAPI{
 		usedPins: make(map[string]boardpin.PinNumbers),
 		boards:   make(BoardsMap),
+		adaptor:  adaptor,
 	}
-	for _, boardRecipe := range boardRecipes {
-		switch boardRecipe.BoardType {
-		case Typ2:
-			newBoard := board.NewBoardTyp2(adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
-			bi.boards[boardRecipe.Name] = newBoard
-			bi.usedPins[boardRecipe.Name] = make(boardpin.PinNumbers)
-		default:
-			fmt.Println("Unknown type", boardRecipe.BoardType)
-		}
-	}
+}
 
-	return bi
+// AddBoard creates a new board using recipe and add to list
+func (bi *BoardsAPI) AddBoard(boardRecipe BoardRecipe) (err error) {
+	if _, ok := bi.boards[boardRecipe.Name]; ok {
+		return fmt.Errorf("Board already there '%s'", boardRecipe.Name)
+	}
+	switch boardRecipe.BoardType {
+	case Typ2:
+		newBoard := board.NewBoardTyp2(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
+		bi.boards[boardRecipe.Name] = newBoard
+		bi.usedPins[boardRecipe.Name] = make(boardpin.PinNumbers)
+	default:
+		return fmt.Errorf("Unknown type '%d'", boardRecipe.BoardType)
+	}
+	return
+}
+
+// RemoveBoard remove board from list
+func (bi *BoardsAPI) RemoveBoard(boardID string) {
+	delete(bi.boards, boardID)
+	delete(bi.usedPins, boardID)
 }
 
 // GetFreePins gets all not used board pins

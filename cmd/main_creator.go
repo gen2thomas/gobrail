@@ -20,14 +20,12 @@ import (
 func main() {
 
 	adaptor := digispark.NewAdaptor()
-
-	// setup IO's
-	gobrailcreator.Create(adaptor)	
+	rail, _ := gobrailcreator.Create(adaptor)
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
 		gobot.Every(50*time.Millisecond, func() {
-			gobrailcreator.Run()
+			rail.Run()
 		})
 	}
 

@@ -28,7 +28,8 @@ var boardAPI *boardsapi.BoardsAPI
 func main() {
 
 	adaptor := digispark.NewAdaptor()
-	boardAPI = boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
+	boardAPI = boardsapi.NewBoardsAPI(adaptor)
+	boardAPI.AddBoard(boardRecipePca9501)
 	loopCounter := 0
 	fmt.Printf("\n------ Init Lamp ------\n")
 	lamp := createLamp("Strassenlampe 1", boardID, 0, raildevices.Timing{})

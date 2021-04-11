@@ -34,7 +34,8 @@ var boardAPI *boardsapi.BoardsAPI
 
 func main() {
 	adaptor := digispark.NewAdaptor()
-	boardAPI = boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
+	boardAPI = boardsapi.NewBoardsAPI(adaptor)
+	boardAPI.AddBoard(boardRecipePca9501)
 	// setup IO's
 	fmt.Printf("\n------ Init Inputs ------\n")
 	button := createButton("Taste 1", boardID, 4)

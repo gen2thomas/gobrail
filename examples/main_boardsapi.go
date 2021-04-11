@@ -28,7 +28,8 @@ var deviceArray [4]boardpin.Output
 func main() {
 
 	adaptor := digispark.NewAdaptor()
-	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
+	boardAPI := boardsapi.NewBoardsAPI(adaptor)
+	boardAPI.AddBoard(boardRecipePca9501)
 	deviceArrayIdx := 0
 	value := uint8(0)
 	fmt.Printf("\n------ Free pins ------\n")
