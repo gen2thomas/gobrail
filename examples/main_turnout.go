@@ -29,21 +29,22 @@ var boardRecipePca9501 = boardsapi.BoardRecipe{
 	BoardType:   boardsapi.Typ2,
 }
 
-func main() {
+var boardAPI *boardsapi.BoardsAPI
 
+func main() {
 	adaptor := digispark.NewAdaptor()
-	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
+	boardAPI = boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
 	// setup IO's
 	fmt.Printf("\n------ Init Inputs ------\n")
-	togButton, _ := raildevices.NewToggleButton(boardAPI, boardID, 4, "Taste 1")
+	togButton := createToggleButton("Taste 1", boardID, 4)
 	fmt.Printf("\n------ Init Outputs ------\n")
-	turnout, _ := raildevices.NewTurnout(boardAPI, boardID, 0, "Weiche 1", 3, raildevices.Timing{Starting: 1 * time.Second, Stopping: 1 * time.Second})
-	lampRed, _ := raildevices.NewLamp(boardAPI, boardID, 1, "Signal rot", raildevices.Timing{Stopping: 50 * time.Millisecond})
-	lampGreen, _ := raildevices.NewLamp(boardAPI, boardID, 2, "Signal grün", raildevices.Timing{Starting: 500 * time.Millisecond})
-	fmt.Printf("\n------ Map inputs to outputs ------\n")
+	turnout := createTurnout("Weiche 1", boardID, 0, 3, raildevices.Timing{Starting: 1 * time.Second, Stopping: 1 * time.Second})
+	lampRed := createLamp("Signal rot", boardID, 1, raildevices.Timing{Stopping: 50 * time.Millisecond})
+	lampGreen := createLamp("Signal grün", boardID, 2, raildevices.Timing{Starting: 500 * time.Millisecond})
+	fmt.Printf("\n------ Connect inputs to outputs ------\n")
 	turnout.Connect(togButton)
-	lampGreen.Connect(turnout)
-	lampRed.ConnectInverse(lampGreen)
+	lampRed.Connect(turnout)
+	lampGreen.ConnectInverse(lampRed)
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
@@ -64,4 +65,25 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func createToggleButton(railDeviceName string, boardID string, boardPinNr uint8) (toggleButton *raildevices.ToggleButtonDevice) {
+	input, _ := boardAPI.GetInputPin(boardID, boardPinNr)
+	toggleButton = raildevices.NewToggleButton(input, railDeviceName)
+	return
+}
+
+func createLamp(railDeviceName string, boardID string, boardPinNr uint8, timing raildevices.Timing) (lamp *raildevices.LampDevice) {
+	co := raildevices.NewCommonOutput(railDeviceName, timing, "lamp")
+	output, _ := boardAPI.GetOutputPin(boardID, boardPinNr)
+	lamp = raildevices.NewLamp(co, output)
+	return
+}
+
+func createTurnout(railDeviceName string, boardID string, boardPinNrBranch uint8, boardPinNrMain uint8, timing raildevices.Timing) (turnout *raildevices.TurnoutDevice) {
+	outputBranch, _ := boardAPI.GetOutputPin(boardID, boardPinNrBranch)
+	outputMain, _ := boardAPI.GetOutputPin(boardID, boardPinNrMain)
+	co := raildevices.NewCommonOutput(railDeviceName, timing, "turnout")
+	turnout = raildevices.NewTurnout(co, outputBranch, outputMain)
+	return
 }

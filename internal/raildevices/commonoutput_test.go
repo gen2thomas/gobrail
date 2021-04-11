@@ -1,7 +1,6 @@
 package raildevices
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,86 +11,50 @@ func TestCommonOutputNew(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	expectedIOPin := uint8(5)
-	api := new(BoardsAPIMock)
-	var usedBoardPinNrIOMap uint8
-	api.apiMapBinaryImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
-		usedBoardPinNrIOMap = boardPinNr
-		return nil
-	}
 	// act
-	lamp, err := NewCommonOutput(api, "boardID", expectedIOPin, "lamp dev", Timing{}, "lamp")
+	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
 	// assert
-	require.Nil(err)
-	require.NotNil(lamp)
-	assert.Equal("lamp dev", lamp.railDeviceName)
-	assert.Equal("lamp", lamp.label)
-	assert.Equal(false, lamp.IsOn())
-	assert.Equal(false, lamp.IsDefective())
-	stateChanged, _ := lamp.StateChanged("v")
+	require.NotNil(co)
+	assert.Equal("lamp dev", co.railDeviceName)
+	assert.Equal("lamp", co.label)
+	assert.Equal(false, co.IsOn())
+	assert.Nil(co.IsDefective())
+	stateChanged, _ := co.StateChanged("v")
 	assert.Equal(true, stateChanged)
-	assert.Equal(0, api.callCounterAnaMap)
-	assert.Equal(1, api.callCounterBinMap)
-	assert.Equal(0, api.callCounterMemMap)
-	assert.Equal(0, api.callCounterGetValue)
-	assert.Equal(0, api.callCounterSetValue)
-	assert.Equal(expectedIOPin, usedBoardPinNrIOMap)
 }
 
-func TestCommonOutputNewWhenBinMapErrorGetsError(t *testing.T) {
+func TestCommonOutputIsOnSetStateStateChanged(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
-	require := require.New(t)
-	expectedError := fmt.Errorf("an error")
-	api := NewBoardsAPIMock()
-	api.apiMapBinaryImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
-		return expectedError
-	}
+	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
 	// act
-	_, err := NewCommonOutput(api, "boardID", 2, "lamp dev", Timing{}, "lamp")
-	// assert
-	require.NotNil(err)
-	assert.Equal(expectedError, err)
-}
-
-func TestCommonOutputIsOnSwitchOnSwitchOffStateChanged(t *testing.T) {
-	// arrange
-	assert := assert.New(t)
-	require := require.New(t)
-	api := NewBoardsAPIMock()
-	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
-	// act
-	stateChanged0, _ := lamp.StateChanged("v")
-	state0 := lamp.IsOn()
+	stateChanged0, _ := co.StateChanged("v")
+	state0 := co.IsOn()
 	//
-	err1 := lamp.SwitchOn()
-	stateChanged1, _ := lamp.StateChanged("v")
-	state1 := lamp.IsOn()
+	co.SetState(true)
+	stateChanged1, _ := co.StateChanged("v")
+	state1 := co.IsOn()
 	//
-	err2 := lamp.SwitchOn()
-	stateChanged2, _ := lamp.StateChanged("v")
-	state2 := lamp.IsOn()
+	co.SetState(true)
+	stateChanged2, _ := co.StateChanged("v")
+	state2 := co.IsOn()
 	//
-	err3 := lamp.SwitchOff()
-	stateChanged3, _ := lamp.StateChanged("v")
-	state3 := lamp.IsOn()
+	co.SetState(false)
+	stateChanged3, _ := co.StateChanged("v")
+	state3 := co.IsOn()
 	//
-	err4 := lamp.SwitchOff()
-	stateChanged4, _ := lamp.StateChanged("v")
-	state4 := lamp.IsOn()
+	co.SetState(false)
+	stateChanged4, _ := co.StateChanged("v")
+	state4 := co.IsOn()
 	// assert
 	assert.Equal(true, stateChanged0)
 	assert.Equal(false, state0)
-	require.Nil(err1)
 	assert.Equal(true, stateChanged1)
 	assert.Equal(true, state1)
-	require.Nil(err2)
 	assert.Equal(false, stateChanged2)
 	assert.Equal(true, state2)
-	require.Nil(err3)
 	assert.Equal(true, stateChanged3)
 	assert.Equal(false, state3)
-	require.Nil(err4)
 	assert.Equal(false, stateChanged4)
 	assert.Equal(false, state4)
 }
@@ -100,62 +63,44 @@ func TestCommonOutputIsDefectiveMakeDefectiveRepairStateChanged(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	api := NewBoardsAPIMock()
-	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
+	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
 	// act
-	state0 := lamp.IsDefective()
-	stateChanged0, _ := lamp.StateChanged("v")
+	deferr0 := co.IsDefective()
+	stateChanged0, _ := co.StateChanged("v")
 	//
-	err1 := lamp.MakeDefective()
-	stateChanged1, _ := lamp.StateChanged("v")
-	state1 := lamp.IsDefective()
+	err1 := co.MakeDefective(func() error { return nil })
+	stateChanged1, _ := co.StateChanged("v")
+	deferr1 := co.IsDefective()
 	//
-	err2 := lamp.Repair()
-	stateChanged2, _ := lamp.StateChanged("v")
-	state2 := lamp.IsDefective()
+	err2 := co.Repair()
+	stateChanged2, _ := co.StateChanged("v")
+	deferr2 := co.IsDefective()
 	// assert
+	require.Nil(deferr0)
+	assert.Equal(true, stateChanged0)
 	require.Nil(err1)
+	assert.Equal(false, stateChanged1)
+	assert.NotNil(deferr1)
 	require.Nil(err2)
-	assert.Equal(true, stateChanged0)
-	assert.Equal(false, state0)
-	assert.Equal(false, stateChanged1)
-	assert.Equal(true, state1)
 	assert.Equal(false, stateChanged2)
-	assert.Equal(false, state2)
-}
-
-func TestCommonOutputSwitchOnWhenIsDefectiveGetsError(t *testing.T) {
-	// arrange
-	assert := assert.New(t)
-	require := require.New(t)
-	api := NewBoardsAPIMock()
-	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
-	// act
-	stateChanged0, _ := lamp.StateChanged("v")
-	err1 := lamp.MakeDefective()
-	err2 := lamp.SwitchOn()
-	stateChanged1, _ := lamp.StateChanged("v")
-	// assert
-	require.Nil(err1)
-	assert.NotNil(err2)
-	assert.Equal(true, stateChanged0)
-	assert.Equal(false, stateChanged1)
+	assert.Nil(deferr2)
 }
 
 func TestCommonOutputMakeDefectiveWillSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	api := NewBoardsAPIMock()
-	lamp, _ := NewCommonOutput(api, "boardID", 1, "lamp dev", Timing{}, "lamp")
+	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
 	// act
-	err1 := lamp.SwitchOn()
-	err2 := lamp.MakeDefective()
-	stateChanged, _ := lamp.StateChanged("v")
-	isOn := lamp.IsOn()
+	co.SetState(true)
+	err := co.MakeDefective(func() error {
+		co.SetState(false)
+		return nil
+	})
+	stateChanged, _ := co.StateChanged("v")
+	isOn := co.IsOn()
 	// assert
-	require.Nil(err1)
-	require.Nil(err2)
+	require.Nil(err)
 	assert.Equal(false, isOn)
 	assert.Equal(true, stateChanged)
 }

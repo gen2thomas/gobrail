@@ -5,6 +5,8 @@ package raildevices
 
 import (
 	"fmt"
+
+	"github.com/gen2thomas/gobrail/internal/boardpin"
 )
 
 // ToggleButtonDevice describes a ToggleButton
@@ -13,18 +15,15 @@ type ToggleButtonDevice struct {
 	oldState       bool
 	toggleState    bool
 	oldToggleState map[string]bool
-	boardsAPI      BoardsAPIer
+	input          *boardpin.Input
 }
 
 // NewToggleButton creates an instance of a ToggleButton
-func NewToggleButton(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string) (ld *ToggleButtonDevice, err error) {
-	if err = boardsAPI.MapBinaryPin(boardID, boardPinNr, railDeviceName); err != nil {
-		return
-	}
+func NewToggleButton(input *boardpin.Input, railDeviceName string) (ld *ToggleButtonDevice) {
 	ld = &ToggleButtonDevice{
 		railDeviceName: railDeviceName,
 		oldToggleState: make(map[string]bool),
-		boardsAPI:      boardsAPI,
+		input:          input,
 	}
 	return
 }
@@ -32,7 +31,7 @@ func NewToggleButton(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, ra
 // StateChanged states true when ToggleButton status was changed
 func (b *ToggleButtonDevice) StateChanged(visitor string) (hasChanged bool, err error) {
 	var value uint8
-	if value, err = b.boardsAPI.GetValue(b.railDeviceName); err != nil {
+	if value, err = b.input.ReadValue(); err != nil {
 		err = fmt.Errorf("Can't read value from '%s', %w", b.railDeviceName, err)
 		return
 	}

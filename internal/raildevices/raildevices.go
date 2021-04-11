@@ -4,15 +4,6 @@ import (
 	"time"
 )
 
-// BoardsAPIer is an interface for interact with a boards API
-type BoardsAPIer interface {
-	MapBinaryPin(boardID string, boardPinNr uint8, railDeviceName string) (err error)
-	MapAnalogPin(boardID string, boardPinNr uint8, railDeviceName string) (err error)
-	MapMemoryPin(boardID string, boardPinNrOrNegative int, railDeviceName string) (err error)
-	GetValue(railDeviceName string) (value uint8, err error)
-	SetValue(railDeviceName string, value uint8) (err error)
-}
-
 // Inputer is an interface for input devices to map in output devices. When an output device
 // have this functions it can be used as input for an successive device.
 type Inputer interface {
@@ -38,4 +29,14 @@ type Outputer interface {
 type Timing struct {
 	Starting time.Duration
 	Stopping time.Duration
+}
+
+func limitTiming(timing Timing, maxTime time.Duration) Timing {
+	if timing.Starting > maxTime {
+		timing.Starting = maxTime
+	}
+	if timing.Stopping > maxTime {
+		timing.Stopping = maxTime
+	}
+	return timing
 }

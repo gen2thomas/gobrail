@@ -13,77 +13,23 @@ func TestToggleButtonNew(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	expectedIOPin := uint8(3)
-	api := new(BoardsAPIMock)
-	var usedBoardPinNrIOMap uint8
-	callCounterIOMap := 0
-	api.apiMapBinaryImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
-		callCounterIOMap++
-		usedBoardPinNrIOMap = boardPinNr
-		return nil
-	}
-	callCounterAnaMap := 0
-	api.apiMapAnalogImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
-		callCounterAnaMap++
-		return nil
-	}
-	callCounterMemMap := 0
-	api.apiMapMemoryImpl = func(boardID string, boardPinNrOrNegative int, railDeviceName string) (err error) {
-		callCounterMemMap++
-		return nil
-	}
-	callCounterSetValue := 0
-	api.apiSetValueImpl = func(railDeviceName string, value uint8) (err error) {
-		callCounterSetValue++
-		return nil
-	}
-	callCounterGetValue := 0
-	api.apiGetValueImpl = func(railDeviceName string) (value uint8, err error) {
-		callCounterGetValue++
-		return 0, nil
-	}
+	rm := ReadMock{}
+	input := NewInputMock(&rm)
 	// act
-	toggleButton, err := NewToggleButton(api, "boardID", expectedIOPin, "ToggleButton")
+	toggleButton := NewToggleButton(input, "ToggleButton")
 	// assert
-	require.Nil(err)
 	require.NotNil(toggleButton)
 	assert.Equal("ToggleButton", toggleButton.railDeviceName)
-	assert.Equal(0, callCounterAnaMap)
-	assert.Equal(1, callCounterIOMap)
-	assert.Equal(expectedIOPin, usedBoardPinNrIOMap)
-	assert.Equal(0, callCounterMemMap)
-	assert.Equal(0, callCounterGetValue)
-	assert.Equal(0, callCounterSetValue)
-}
-
-func TestToggleButtonNewWhenBinMapErrorGetsError(t *testing.T) {
-	// arrange
-	assert := assert.New(t)
-	require := require.New(t)
-	expectedError := fmt.Errorf("an error")
-	api := NewBoardsAPIMock()
-	api.apiMapBinaryImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
-		return expectedError
-	}
-	// act
-	_, err := NewToggleButton(api, "boardID", 2, "ToggleButton")
-	// assert
-	require.NotNil(err)
-	assert.Equal(expectedError, err)
+	assert.Equal(0, rm.callCounter)
 }
 
 func TestToggleButtonToggleStateChangedIsOn(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	api := NewBoardsAPIMock()
-	var getValues = [...]uint8{1, 1, 0, 0, 1}
-	callCounter := -1
-	api.apiGetValueImpl = func(railDeviceName string) (value uint8, err error) {
-		callCounter++
-		return getValues[callCounter], nil
-	}
-	toggleButton, _ := NewToggleButton(api, "boardID", 3, "ToggleButton")
+	rm := ReadMock{values: [...]uint8{1, 1, 0, 0, 1}}
+	input := NewInputMock(&rm)
+	toggleButton := NewToggleButton(input, "ToggleButton")
 	// act
 	state0 := toggleButton.IsOn()
 	changed1, err1 := toggleButton.StateChanged("v")
@@ -102,6 +48,7 @@ func TestToggleButtonToggleStateChangedIsOn(t *testing.T) {
 	require.Nil(err3)
 	require.Nil(err4)
 	require.Nil(err5)
+	assert.Equal(5, rm.callCounter)
 	assert.Equal(false, state0)
 	assert.Equal(true, changed1)
 	assert.Equal(true, state1)
@@ -120,15 +67,14 @@ func TestToggleButtonToggleStateChangedWhenReadErrorGetsError(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	expectedError := fmt.Errorf("an error")
-	api := NewBoardsAPIMock()
-	api.apiGetValueImpl = func(railDeviceName string) (value uint8, err error) {
-		return 0, expectedError
-	}
-	toggleButton, _ := NewToggleButton(api, "boardID", 1, "ToggleButton")
+	rm := ReadMock{simError: expectedError}
+	input := NewInputMock(&rm)
+	toggleButton := NewToggleButton(input, "ToggleButton")
 	// act
 	_, err := toggleButton.StateChanged("v")
 	// assert
 	require.NotNil(err)
+	assert.Equal(1, rm.callCounter)
 	assert.Contains(err.Error(), "Can't read value from")
 	assert.Equal(expectedError, errors.Unwrap(err))
 }

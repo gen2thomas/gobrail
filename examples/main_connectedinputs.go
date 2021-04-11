@@ -33,47 +33,31 @@ var boardRecipePca9501 = boardsapi.BoardRecipe{
 var boardAPI *boardsapi.BoardsAPI
 
 func main() {
-
 	adaptor := digispark.NewAdaptor()
 	boardAPI = boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
-	loopCounter := 0
-	fmt.Printf("\n------ Init Button ------\n")
+	// setup IO's
+	fmt.Printf("\n------ Init Inputs ------\n")
 	button := createButton("Taste 1", boardID, 4)
-	togButton := createToggleButton("Taste 2", boardID, 5)
-	lamp1 := createLamp("Strassenlampe 1", boardID, 0 ,raildevices.Timing{})
-	lamp2 := createLamp("Strassenlampe 2", boardID, 1 ,raildevices.Timing{})
-	fmt.Printf("\n------ Used pins ------\n")
-	uPins := boardAPI.GetUsedPins(boardID)
-	fmt.Println(uPins)
+	togButton := createToggleButton( "Taste 2", boardID, 5)
+	fmt.Printf("\n------ Init Outputs ------\n")
+	lamp1 := createLamp("Strassenlampe 1", boardID, 0, raildevices.Timing{})
+	lamp2 := createLamp("Strassenlampe 2", boardID, 1, raildevices.Timing{Starting: 500*time.Millisecond})
+	lamp3 := createLamp("Strassenlampe 3", boardID, 2, raildevices.Timing{Starting: time.Second, Stopping: time.Second})
+	fmt.Printf("\n------ Connect inputs to outputs ------\n")
+	lamp1.Connect(button)
+	lamp2.Connect(togButton)
+	lamp3.ConnectInverse(lamp2) // lamp3 will be switched off after lamp2 is really on
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
 		gobot.Every(50*time.Millisecond, func() {
-			//
-			if changed, _ := button.StateChanged("v"); changed {
-				if button.IsOn() {
-					fmt.Printf("Button '%s' was pressed\n", button.RailDeviceName())
-					lamp1.SwitchOn()
-				} else {
-					fmt.Printf("Button '%s' released\n", button.RailDeviceName())
-					lamp1.SwitchOff()
-				}
-			}
-			//
-			if changed, _ := togButton.StateChanged("v"); changed {
-				if togButton.IsOn() {
-					fmt.Printf("Toggle '%s' to on\n", togButton.RailDeviceName())
-					lamp2.SwitchOn()
-				} else {
-					fmt.Printf("Toggle '%s' to off\n", togButton.RailDeviceName())
-					lamp2.SwitchOff()
-				}
-			}
-			loopCounter++
+			lamp3.Run()
+			lamp1.Run()
+			lamp2.Run()
 		})
 	}
 
-	robot := gobot.NewRobot("play with button and lamp",
+	robot := gobot.NewRobot("play with connected buttons and lamps",
 		[]gobot.Connection{adaptor},
 		boardAPI.GobotDevices(),
 		work,

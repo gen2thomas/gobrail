@@ -27,28 +27,30 @@ import (
 	"time"
 
 	"gobot.io/x/gobot/drivers/i2c"
+
+	"github.com/gen2thomas/gobrail/internal/boardpin"
 )
 
 const chipID = "PCA9501.GPIO.Mem"
 
 //this is the default io configuration of this board
 var boardPinsDefault = PinsMap{
-	0:  {chipID: chipID, chipPinNr: 0, pinType: BinaryW},
-	1:  {chipID: chipID, chipPinNr: 1, pinType: BinaryW},
-	2:  {chipID: chipID, chipPinNr: 2, pinType: BinaryW},
-	3:  {chipID: chipID, chipPinNr: 3, pinType: BinaryW},
-	4:  {chipID: chipID, chipPinNr: 4, pinType: NBinaryR},
-	5:  {chipID: chipID, chipPinNr: 5, pinType: NBinaryR},
-	6:  {chipID: chipID, chipPinNr: 6, pinType: NBinaryR},
-	7:  {chipID: chipID, chipPinNr: 7, pinType: NBinaryR},
-	8:  {chipID: chipID, chipPinNr: 0x01, pinType: Memory},
-	9:  {chipID: chipID, chipPinNr: 0x02, pinType: Memory},
-	10: {chipID: chipID, chipPinNr: 0x02, pinType: Memory},
-	11: {chipID: chipID, chipPinNr: 0x03, pinType: Memory},
-	12: {chipID: chipID, chipPinNr: 0x04, pinType: Memory},
-	13: {chipID: chipID, chipPinNr: 0x05, pinType: Memory},
-	14: {chipID: chipID, chipPinNr: 0x06, pinType: Memory},
-	15: {chipID: chipID, chipPinNr: 0x07, pinType: Memory},
+	0:  {ChipID: chipID, ChipPinNr: 0, PinType: boardpin.BinaryW},
+	1:  {ChipID: chipID, ChipPinNr: 1, PinType: boardpin.BinaryW},
+	2:  {ChipID: chipID, ChipPinNr: 2, PinType: boardpin.BinaryW},
+	3:  {ChipID: chipID, ChipPinNr: 3, PinType: boardpin.BinaryW},
+	4:  {ChipID: chipID, ChipPinNr: 4, PinType: boardpin.NBinaryR},
+	5:  {ChipID: chipID, ChipPinNr: 5, PinType: boardpin.NBinaryR},
+	6:  {ChipID: chipID, ChipPinNr: 6, PinType: boardpin.NBinaryR},
+	7:  {ChipID: chipID, ChipPinNr: 7, PinType: boardpin.NBinaryR},
+	8:  {ChipID: chipID, ChipPinNr: 0x01, PinType: boardpin.Memory},
+	9:  {ChipID: chipID, ChipPinNr: 0x02, PinType: boardpin.Memory},
+	10: {ChipID: chipID, ChipPinNr: 0x02, PinType: boardpin.Memory},
+	11: {ChipID: chipID, ChipPinNr: 0x03, PinType: boardpin.Memory},
+	12: {ChipID: chipID, ChipPinNr: 0x04, PinType: boardpin.Memory},
+	13: {ChipID: chipID, ChipPinNr: 0x05, PinType: boardpin.Memory},
+	14: {ChipID: chipID, ChipPinNr: 0x06, PinType: boardpin.Memory},
+	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
 }
 
 // NewBoardTyp2 creates a new board of typ 2
@@ -61,13 +63,13 @@ func NewBoardTyp2(adaptor i2c.Connector, address uint8, name string) *Board {
 	return NewBoard(name, chips, boardPinsDefault)
 }
 
-func (b *Board) writeGPIO(bPin *boardPin, val uint8) (err error) {
+func (b *Board) writeGPIO(bPin *boardpin.Pin, val uint8) (err error) {
 	var driver DriverOperations
 	if driver, err = b.getDriver(bPin); err != nil {
 		return
 	}
 	var params = map[string]interface{}{
-		"pin": bPin.chipPinNr,
+		"pin": bPin.ChipPinNr,
 		"val": val,
 	}
 	result := driver.Command("WriteGPIO")(params).(map[string]interface{})["err"]
@@ -77,13 +79,13 @@ func (b *Board) writeGPIO(bPin *boardPin, val uint8) (err error) {
 	return
 }
 
-func (b *Board) readGPIO(bPin *boardPin) (val uint8, err error) {
+func (b *Board) readGPIO(bPin *boardpin.Pin) (val uint8, err error) {
 	var driver DriverOperations
 	if driver, err = b.getDriver(bPin); err != nil {
 		return
 	}
 	params := make(map[string]interface{})
-	params["pin"] = bPin.chipPinNr
+	params["pin"] = bPin.ChipPinNr
 	result := driver.Command("ReadGPIO")(params).(map[string]interface{})
 	if result["err"] != nil {
 		return 0, result["err"].(error)
@@ -91,13 +93,13 @@ func (b *Board) readGPIO(bPin *boardPin) (val uint8, err error) {
 	return result["val"].(uint8), nil
 }
 
-func (b *Board) writeEEPROM(bPin *boardPin, val uint8) (err error) {
+func (b *Board) writeEEPROM(bPin *boardpin.Pin, val uint8) (err error) {
 	var driver DriverOperations
 	if driver, err = b.getDriver(bPin); err != nil {
 		return
 	}
 	var params = map[string]interface{}{
-		"address": bPin.chipPinNr,
+		"address": bPin.ChipPinNr,
 		"val":     val,
 	}
 	result := driver.Command("WriteEEPROM")(params).(map[string]interface{})["err"]
@@ -108,13 +110,13 @@ func (b *Board) writeEEPROM(bPin *boardPin, val uint8) (err error) {
 	return
 }
 
-func (b *Board) readEEPROM(bPin *boardPin) (val uint8, err error) {
+func (b *Board) readEEPROM(bPin *boardpin.Pin) (val uint8, err error) {
 	var driver DriverOperations
 	if driver, err = b.getDriver(bPin); err != nil {
 		return
 	}
 	params := make(map[string]interface{})
-	params["address"] = bPin.chipPinNr
+	params["address"] = bPin.ChipPinNr
 	result := driver.Command("ReadEEPROM")(params).(map[string]interface{})
 	time.Sleep(4 * time.Millisecond)
 	if result["err"] != nil {

@@ -12,6 +12,7 @@ import (
 	"gobot.io/x/gobot/platforms/digispark"
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
+	"github.com/gen2thomas/gobrail/internal/boardpin"
 )
 
 const boardName = "IO_Mem_PCA9501"
@@ -22,68 +23,45 @@ var boardRecipePca9501 = boardsapi.BoardRecipe{
 	BoardType:   boardsapi.Typ2,
 }
 
-var deviceArray = [...]string{
-	"Weiche1 Links",
-	"Weiche1 Rechts",
-	"Weiche2 Links",
-	"Weiche2 Rechts",
-	"Signal1 Rot",
-	"Signal1 Grün",
-	"Signal2 Rot",
-	"Signal2 Grün",
-}
+var deviceArray [4]boardpin.Output
 
 func main() {
 
 	adaptor := digispark.NewAdaptor()
 	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
-	firstLoop := true
 	deviceArrayIdx := 0
 	value := uint8(0)
+	fmt.Printf("\n------ Free pins ------\n")
+	freePins := boardAPI.GetFreePins(boardName)
+	fmt.Println(freePins)
+	fmt.Printf("\n------ Map pins ------\n")
+	weiche1Links,_ := boardAPI.GetOutputPin(boardName, 0)
+	weiche1Rechts,_:= boardAPI.GetOutputPin(boardName, 3)
+	signal1Rot,_:=boardAPI.GetOutputPin(boardName, 1)
+	signal1Gruen,_:= boardAPI.GetOutputPin(boardName, 2)
+	usedPins := boardAPI.GetUsedPins(boardName)
+	fmt.Println(usedPins)
+  deviceArray[0] = *weiche1Links
+  deviceArray[1] = *signal1Rot
+  deviceArray[2] = *weiche1Rechts
+  deviceArray[3] = *signal1Gruen
+	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
-		gobot.Every(1000*time.Millisecond, func() {
-			if firstLoop {
-				fmt.Printf("\n------ IO test ------\n")
-				boardAPI.SetAllOutputValues()
-				time.Sleep(2000 * time.Millisecond)
-				boardAPI.ResetAllOutputValues()
-				time.Sleep(2000 * time.Millisecond)
-
-				fmt.Printf("\n------ Free pins ------\n")
-				freeAPIPins := boardAPI.GetFreeAPIBinaryPins(boardName)
-				fmt.Println(freeAPIPins)
-
-				fmt.Printf("\n------ Map pins ------\n")
-				boardAPI.MapBinaryPin(boardName, 0, "Weiche1 Links")
-				boardAPI.MapBinaryPin(boardName, 1, "Weiche1 Rechts")
-				boardAPI.MapBinaryPin(boardName, 2, "Weiche2 Links")
-				boardAPI.MapBinaryPin(boardName, 3, "Weiche2 Rechts")
-				boardAPI.MapBinaryPin(boardName, 4, "Signal1 Rot")
-				boardAPI.MapBinaryPin(boardName, 5, "Signal1 Grün")
-				boardAPI.MapBinaryPin(boardName, 6, "Signal2 Rot")
-				boardAPI.MapBinaryPin(boardName, 7, "Signal2 Grün")
-				mappedAPIPins := boardAPI.GetMappedAPIBinaryPins(boardName)
-				fmt.Println(mappedAPIPins)
-				time.Sleep(2000 * time.Millisecond)
-
-				firstLoop = false
-				fmt.Printf("\n------ Now running ------\n")
-			} else {
-				boardAPI.SetValue(deviceArray[deviceArrayIdx], value)
-				deviceArrayIdx++
-				if deviceArrayIdx > 7 {
-					deviceArrayIdx = 0
-					value++
-				}
-				if value > 1 {
-					value = 0
-				}
+		gobot.Every(500*time.Millisecond, func() {
+			deviceArray[deviceArrayIdx].WriteValue(value)
+			deviceArrayIdx++
+			if deviceArrayIdx > 3 {
+				deviceArrayIdx = 0
+				value++
+			}
+			if value > 1 {
+				value = 0
 			}
 		})
 	}
 
-	robot := gobot.NewRobot("rotatePinsI2c",
+	robot := gobot.NewRobot("rotate Pins",
 		[]gobot.Connection{adaptor},
 		boardAPI.GobotDevices(),
 		work,

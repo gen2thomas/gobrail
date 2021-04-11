@@ -1,86 +1,67 @@
 package raildevices
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestTwoLightSignalNew(t *testing.T) {
+func TestTwoLightsSignalNew(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	expectedIOPins := [...]uint8{5, 7}
-	api := new(BoardsAPIMock)
-	var usedBoardPinNrBinMaps [2]uint8
-	api.apiMapBinaryImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
-		usedBoardPinNrBinMaps[api.callCounterBinMap-1] = boardPinNr
-		return nil
-	}
+	co := NewCommonOutput("tls dev", Timing{}, "tls")
+	output1 := NewOutputMock(&WriteMock{})
+	output2 := NewOutputMock(&WriteMock{})
 	// act
-	tls, err := NewTwoLightSignal(api, "boardID", expectedIOPins[0], "tls dev", expectedIOPins[1], Timing{})
+	tls := NewTwoLightsSignal(co, output1, output2)
 	// assert
-	require.Nil(err)
 	require.NotNil(tls)
 	require.NotNil(tls.cmnOutDev)
-	assert.Equal("tls dev stop", tls.railDeviceNameStop)
-	assert.Equal(0, api.callCounterAnaMap)
-	assert.Equal(2, api.callCounterBinMap)
-	assert.Equal(0, api.callCounterMemMap)
-	assert.Equal(0, api.callCounterGetValue)
-	assert.Equal(0, api.callCounterSetValue)
-	assert.Equal(expectedIOPins, usedBoardPinNrBinMaps)
+	assert.Equal(co, tls.cmnOutDev)
+	assert.Equal(output1, tls.outputPass)
+	assert.Equal(output2, tls.outputStop)
 }
 
-func TestTwoLightSignalNewWhenBinMapErrorGetsError(t *testing.T) {
+func TestTwoLightsSignalSwitchOn(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	expectedError := fmt.Errorf("an error")
-	api := NewBoardsAPIMock()
-	api.apiMapBinaryImpl = func(boardID string, boardPinNr uint8, railDeviceName string) (err error) {
-		if api.callCounterBinMap == 2 {
-			return expectedError
-		}
-		return
-	}
-	// act
-	_, err := NewTwoLightSignal(api, "boardID", 2, "tls dev", 3, Timing{})
-	// assert
-	require.NotNil(err)
-	assert.Equal(expectedError, err)
-}
-
-func TestTwoLightSignalSwitchOn(t *testing.T) {
-	// arrange
-	assert := assert.New(t)
-	require := require.New(t)
-	api := NewBoardsAPIMock()
-	tls, _ := NewTwoLightSignal(api, "boardID", 1, "tls dev", 2, Timing{})
+	co := NewCommonOutput("tls dev", Timing{}, "tls")
+	wmPass := WriteMock{}
+	wmStop := WriteMock{}
+	outputPass := NewOutputMock(&wmPass)
+	outputStop := NewOutputMock(&wmStop)
+	tls := NewTwoLightsSignal(co, outputPass, outputStop)
 	// act
 	err := tls.SwitchOn()
 	// assert
 	require.Nil(err)
-	assert.Equal(2, api.callCounterSetValue)
-	assert.Equal(uint8(1), api.values["tls dev"])
-	assert.Equal(uint8(0), api.values["tls dev stop"])
+	assert.Equal(1, wmStop.callCounter)
+	require.Equal(1, wmPass.callCounter)
+	assert.Equal(uint8(0), wmStop.values[0])
+	assert.Equal(uint8(1), wmPass.values[0])
 	assert.Equal(true, tls.IsOn())
 }
 
-func TestTwoLightSignalSwitchOff(t *testing.T) {
+func TestTwoLightsSignalSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	api := NewBoardsAPIMock()
-	tls, _ := NewTwoLightSignal(api, "boardID", 1, "tls dev", 2, Timing{})
+	co := NewCommonOutput("tls dev", Timing{}, "tls")
+	wmPass := WriteMock{}
+	wmStop := WriteMock{}
+	outputPass := NewOutputMock(&wmPass)
+	outputStop := NewOutputMock(&wmStop)
+	tls := NewTwoLightsSignal(co, outputPass, outputStop)
 	// act
 	err := tls.SwitchOff()
 	// assert
 	require.Nil(err)
-	assert.Equal(2, api.callCounterSetValue)
-	assert.Equal(uint8(0), api.values["tls dev"])
-	assert.Equal(uint8(1), api.values["tls dev stop"])
+	require.Equal(1, wmStop.callCounter)
+	assert.Equal(1, wmPass.callCounter)
+	assert.Equal(uint8(1), wmStop.values[0])
+	assert.Equal(uint8(0), wmPass.values[0])
 	assert.Equal(false, tls.IsOn())
 }

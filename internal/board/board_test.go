@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gobot.io/x/gobot"
+
+	"github.com/gen2thomas/gobrail/internal/boardpin"
 )
 
 type deviceMock struct {
@@ -42,19 +44,19 @@ func TestPinsOfType(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	boardPins := PinsMap{
-		0:  {pinType: Binary},
-		1:  {pinType: Memory},
-		2:  {pinType: Analog},
-		3:  {pinType: NBinary},
-		4:  {pinType: NBinaryR},
-		5:  {pinType: NBinaryW},
-		6:  {pinType: MemoryR},
-		7:  {pinType: AnalogR},
-		8:  {pinType: MemoryW},
-		9:  {pinType: MemoryR},
-		10: {pinType: BinaryR},
-		11: {pinType: AnalogW},
-		12: {pinType: BinaryW},
+		0:  {PinType: boardpin.Binary},
+		1:  {PinType: boardpin.Memory},
+		2:  {PinType: boardpin.Analog},
+		3:  {PinType: boardpin.NBinary},
+		4:  {PinType: boardpin.NBinaryR},
+		5:  {PinType: boardpin.NBinaryW},
+		6:  {PinType: boardpin.MemoryR},
+		7:  {PinType: boardpin.AnalogR},
+		8:  {PinType: boardpin.MemoryW},
+		9:  {PinType: boardpin.MemoryR},
+		10: {PinType: boardpin.BinaryR},
+		11: {PinType: boardpin.AnalogW},
+		12: {PinType: boardpin.BinaryW},
 	}
 
 	testBoard := &Board{
@@ -62,14 +64,16 @@ func TestPinsOfType(t *testing.T) {
 	}
 
 	// act
-	pinsBin := testBoard.GetBinaryPinNumbers()
-	pinsAna := testBoard.GetAnalogPinNumbers()
-	pinsMem := testBoard.GetMemoryPinNumbers()
+	pinsAll := testBoard.GetPinNumbers()
+	pinsBin := testBoard.GetPinNumbersOfType(boardpin.Binary, boardpin.BinaryW, boardpin.BinaryR, boardpin.NBinary, boardpin.NBinaryW, boardpin.NBinaryR)
+	pinsAna := testBoard.GetPinNumbersOfType(boardpin.Analog, boardpin.AnalogW, boardpin.AnalogR)
+	pinsMem := testBoard.GetPinNumbersOfType(boardpin.Memory, boardpin.MemoryW, boardpin.MemoryR)
 
 	// assert
 	assert.Equal(6, len(pinsBin))
 	assert.Equal(3, len(pinsAna))
 	assert.Equal(4, len(pinsMem))
+	assert.Equal(13, len(pinsAll))
 }
 
 func TestGetBoardPin(t *testing.T) {
@@ -95,42 +99,6 @@ func TestGetBoardPinNotThereGetsError(t *testing.T) {
 	// assert
 	assert.NotNil(err)
 	assert.Nil(pin)
-}
-
-func TestGetDriver(t *testing.T) {
-	// arrange
-	assert := assert.New(t)
-	require := require.New(t)
-	dev := deviceMock{name: "Testdriver"}
-	bPin := boardPin{chipID: "Testid"}
-	boardPins := PinsMap{5: &bPin}
-	testBoard := &Board{
-		pins:  boardPins,
-		chips: map[string]*chip{"Testid": {driver: &dev}},
-	}
-	// act
-	driver, err := testBoard.getDriver(&bPin)
-	// assert
-	require.Nil(err)
-	assert.NotNil(driver)
-	assert.Equal("Testdriver", driver.Name())
-}
-
-func TestGetDriverNotThereGetsError(t *testing.T) {
-	// arrange
-	assert := assert.New(t)
-	dev := deviceMock{name: "Testdriver"}
-	bPin := boardPin{chipID: "Testid1"}
-	boardPins := PinsMap{5: &bPin}
-	testBoard := &Board{
-		pins:  boardPins,
-		chips: map[string]*chip{"Testid2": {driver: &dev}},
-	}
-	// act
-	driver, err := testBoard.getDriver(&bPin)
-	// assert
-	assert.NotNil(err)
-	assert.Nil(driver)
 }
 
 func (d *deviceMock) Name() string                                                      { return d.name }

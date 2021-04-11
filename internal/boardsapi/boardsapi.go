@@ -1,8 +1,7 @@
 package boardsapi
 
 //
-// The BoardsAPI is the application interface from rail devices to boards
-// Rail device pins can be mapped to boards IO's.
+// The BoardsAPI is the application interface to boards
 //
 //      Author: g2t
 //  Created on: 13.06.2009
@@ -12,14 +11,17 @@ package boardsapi
 // Call       : some functions from board package
 //
 // Functions:
-// + calculate access to the right board and boardPinNr
-// + reset and set functions fore all boards
+// + get input and output pins and mark used
+// + get all pin numbers of a board
+// + get used pin numbers of a board
+// + get available pin numbers of a board
 //
 // TODO:
+// - release pins (remove used mark)
 // - split generate recipes or read recipes from config
-// - support for cascades
 // - store configuration in host eeprom or file (maybe not necessary when recipes is working)
 // - detect an device and add to boards (or generate recipe automatically)
+// - support for cascades
 //
 
 import (
@@ -29,6 +31,7 @@ import (
 	"gobot.io/x/gobot/drivers/i2c"
 
 	"github.com/gen2thomas/gobrail/internal/board"
+	"github.com/gen2thomas/gobrail/internal/boardpin"
 )
 
 // ConfigurationOperations is an interface for interact with configuration part
@@ -40,11 +43,9 @@ type ConfigurationOperations interface {
 type Boarder interface {
 	ConfigurationOperations
 	GobotDevices() []gobot.Device
-	GetBinaryPinNumbers() map[uint8]struct{}
-	GetAnalogPinNumbers() map[uint8]struct{}
-	GetMemoryPinNumbers() map[uint8]struct{}
+	GetPinNumbers() boardpin.PinNumbers
 	ReadValue(boardPinNr uint8) (uint8, error)
-	SetValue(boardPinNr uint8, value uint8) (err error)
+	WriteValue(boardPinNr uint8, value uint8) (err error)
 }
 
 type boardType uint8
@@ -68,28 +69,96 @@ type BoardsMap map[string]Boarder
 
 // BoardsAPI is the main object for API access
 type BoardsAPI struct {
-	mappedPins APIPinsMap
-	boards     BoardsMap
+	usedPins map[string]boardpin.PinNumbers
+	boards   BoardsMap
 }
 
 // NewBoardsAPI creates a new API access
 func NewBoardsAPI(adaptor i2c.Connector, boardRecipes []BoardRecipe) *BoardsAPI {
-	allBoards := make(BoardsMap)
+	bi := &BoardsAPI{
+		usedPins: make(map[string]boardpin.PinNumbers),
+		boards:   make(BoardsMap),
+	}
 	for _, boardRecipe := range boardRecipes {
 		switch boardRecipe.BoardType {
 		case Typ2:
 			newBoard := board.NewBoardTyp2(adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
-			allBoards[boardRecipe.Name] = newBoard
+			bi.boards[boardRecipe.Name] = newBoard
+			bi.usedPins[boardRecipe.Name] = make(boardpin.PinNumbers)
 		default:
 			fmt.Println("Unknown type", boardRecipe.BoardType)
 		}
 	}
 
-	bi := &BoardsAPI{
-		mappedPins: make(APIPinsMap),
-		boards:     allBoards,
-	}
 	return bi
+}
+
+// GetFreePins gets all not used board pins
+func (bi *BoardsAPI) GetFreePins(boardID string) (freePins boardpin.PinNumbers) {
+	var board Boarder
+	var ok bool
+	if board, ok = bi.boards[boardID]; !ok {
+		return
+	}
+	allPins := board.GetPinNumbers()
+	usedPins := bi.usedPins[boardID]
+	freePins = make(boardpin.PinNumbers)
+	for boardPinNr := range allPins {
+		if _, ok := usedPins[boardPinNr]; !ok {
+			freePins[boardPinNr] = struct{}{}
+		}
+	}
+	return freePins
+}
+
+// GetUsedPins gets all not used board pins
+func (bi *BoardsAPI) GetUsedPins(boardID string) (usedPins boardpin.PinNumbers) {
+	var ok bool
+	if _, ok = bi.boards[boardID]; !ok {
+		return
+	}
+	sourceUsedPins := bi.usedPins[boardID]
+	usedPins = make(boardpin.PinNumbers)
+	for usedPin := range sourceUsedPins {
+		usedPins[usedPin] = struct{}{}
+	}
+	return
+}
+
+// GetInputPin gets an board pin to use for read values
+func (bi *BoardsAPI) GetInputPin(boardID string, boardPinNr uint8) (boardPin *boardpin.Input, err error) {
+	// already mapped
+	if _, ok := bi.usedPins[boardID][boardPinNr]; ok {
+		return nil, fmt.Errorf("Board Pin '%d' at '%s' already used", boardPinNr, boardID)
+	}
+	// create pin
+	boardPin = &boardpin.Input{
+		BoardID:    boardID,
+		BoardPinNr: boardPinNr,
+		ReadValue: func() (value uint8, err error) {
+			return bi.boards[boardID].ReadValue(boardPinNr)
+		},
+	}
+	bi.usedPins[boardID][boardPinNr] = struct{}{}
+	return
+}
+
+// GetOutputPin gets an board pin to use for write values
+func (bi *BoardsAPI) GetOutputPin(boardID string, boardPinNr uint8) (boardPin *boardpin.Output, err error) {
+	// already mapped
+	if _, ok := bi.usedPins[boardID][boardPinNr]; ok {
+		return nil, fmt.Errorf("Board Pin '%d' at '%s' already used", boardPinNr, boardID)
+	}
+	// create pin
+	boardPin = &boardpin.Output{
+		BoardID:    boardID,
+		BoardPinNr: boardPinNr,
+		WriteValue: func(value uint8) (err error) {
+			return bi.boards[boardID].WriteValue(boardPinNr, value)
+		},
+	}
+	bi.usedPins[boardID][boardPinNr] = struct{}{}
+	return
 }
 
 // GobotDevices gets all gobot devices of all boards
@@ -119,36 +188,16 @@ func (bi *BoardsAPI) ShowConfigs() {
 	}
 }
 
-// SetValue sets a value of a rail device, independent of board
-func (bi *BoardsAPI) SetValue(railDeviceName string, value uint8) (err error) {
-	var apiPin *apiPin
-	var ok bool
-	if apiPin, ok = bi.mappedPins[createKey(railDeviceName)]; !ok {
-		return fmt.Errorf("Rail device '%s' not mapped yet (key: %s)", railDeviceName, createKey(railDeviceName))
-	}
-	return bi.boards[apiPin.boardID].SetValue(apiPin.boardPinNr, value)
-}
-
-// GetValue gets a value of a rail device, independent of board
-func (bi *BoardsAPI) GetValue(railDeviceName string) (value uint8, err error) {
-	var apiPin *apiPin
-	var ok bool
-	if apiPin, ok = bi.mappedPins[createKey(railDeviceName)]; !ok {
-		return 0, fmt.Errorf("Rail device '%s' not mapped yet (key: %s)", railDeviceName, createKey(railDeviceName))
-	}
-	return bi.boards[apiPin.boardID].ReadValue(apiPin.boardPinNr)
-}
-
 func (bi *BoardsAPI) String() string {
-	return fmt.Sprintf("%s\n%s", bi.boards, bi.mappedPins)
+	return fmt.Sprintf("%s\n", bi.boards)
 }
 
-func (bm BoardsMap) String() string {
+func (bm BoardsMap) String() (toString string) {
 	countBoards := len(bm)
 	if countBoards == 0 {
 		return "No Boards"
 	}
-	toString := fmt.Sprintf("Boards: %d\n", countBoards)
+	toString = fmt.Sprintf("Boards: %d\n", countBoards)
 	for id, board := range bm {
 		toString = fmt.Sprintf("%sBoard Id: %s, %s\n", toString, id, board)
 	}

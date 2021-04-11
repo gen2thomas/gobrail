@@ -3,19 +3,21 @@ package raildevices
 // A lamp is a rail device used for
 // simple lamps, neon-light simulation, blinking lamps
 
+import (
+	"github.com/gen2thomas/gobrail/internal/boardpin"
+)
+
 // LampDevice is describes a lamp
 type LampDevice struct {
 	cmnOutDev *CommonOutputDevice
+	output    *boardpin.Output
 }
 
 // NewLamp creates an instance of a lamp
-func NewLamp(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string, timing Timing) (ld *LampDevice, err error) {
-	var co *CommonOutputDevice
-	if co, err = NewCommonOutput(boardsAPI, boardID, boardPinNr, railDeviceName, timing, "lamp"); err != nil {
-		return
-	}
+func NewLamp(co *CommonOutputDevice, output *boardpin.Output) (ld *LampDevice) {
 	ld = &LampDevice{
 		cmnOutDev: co,
+		output:    output,
 	}
 	return
 }
@@ -31,23 +33,36 @@ func (l *LampDevice) IsOn() bool {
 }
 
 // IsDefective states true when StdLamp is defective
-func (l *LampDevice) IsDefective() bool {
+func (l *LampDevice) IsDefective() (err error) {
 	return l.cmnOutDev.IsDefective()
 }
 
 // SwitchOn will try to switch on the StdLamp
 func (l *LampDevice) SwitchOn() (err error) {
-	return l.cmnOutDev.SwitchOn()
+	if err = l.cmnOutDev.IsDefective(); err != nil {
+		return
+	}
+	l.cmnOutDev.TimingForStart()
+	if err = l.output.WriteValue(1); err != nil {
+		return
+	}
+	l.cmnOutDev.SetState(true)
+	return
 }
 
 // SwitchOff will switch off the StdLamp
 func (l *LampDevice) SwitchOff() (err error) {
-	return l.cmnOutDev.SwitchOff()
+	l.cmnOutDev.TimingForStop()
+	if err = l.output.WriteValue(0); err != nil {
+		return
+	}
+	l.cmnOutDev.SetState(false)
+	return
 }
 
 // MakeDefective causes the StdLamp in an simulated defective state
 func (l *LampDevice) MakeDefective() (err error) {
-	return l.cmnOutDev.MakeDefective()
+	return l.cmnOutDev.MakeDefective(l.SwitchOff)
 }
 
 // Repair will fix the simulated defective state
@@ -72,7 +87,7 @@ func (l *LampDevice) ConnectInverse(inputDevice Inputer) (err error) {
 
 // Run is called in a loop and will make action dependant on the input device
 func (l *LampDevice) Run() (err error) {
-	return l.cmnOutDev.Run(l.cmnOutDev.SwitchOn, l.cmnOutDev.SwitchOff)
+	return l.cmnOutDev.Run(l.SwitchOn, l.SwitchOff)
 }
 
 // ReleaseInput is used to unmap

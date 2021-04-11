@@ -26,36 +26,8 @@ import (
 	"fmt"
 
 	"gobot.io/x/gobot"
-)
 
-// PinType is used to type safe the constants
-type PinType uint8
-
-const (
-	// Binary is used for r/w "0","1" on GPIO
-	Binary PinType = iota
-	// BinaryR is used for read only "0","1" from GPIO
-	BinaryR
-	// BinaryW is used for write only "0","1" to GPIO
-	BinaryW
-	// NBinary is used for r/w "0","1" on negotiated GPIO
-	NBinary
-	// NBinaryR is used for read only "0","1" from negotiated GPIO
-	NBinaryR
-	// NBinaryW is used for write only "0","1" to negotiated GPIO
-	NBinaryW
-	// Analog is used for r/w 0-255 on analog outputs or PWM
-	Analog
-	// AnalogR is used for read only 0-255 from analog inputs
-	AnalogR
-	// AnalogW is used for write only 0-255 to analog outputs or PWM
-	AnalogW
-	// Memory is used for r/w to EEPROM
-	Memory
-	// MemoryR is used for read only from EEPROM
-	MemoryR
-	// MemoryW is used for write only to EEPROM
-	MemoryW
+	"github.com/gen2thomas/gobrail/internal/boardpin"
 )
 
 // DriverOperations is an interface for interact with gobot driver for chip
@@ -69,16 +41,8 @@ type chip struct {
 	driver  DriverOperations
 }
 
-type boardPin struct {
-	chipID    string
-	chipPinNr uint8
-	pinType   PinType
-	minVal    uint8
-	maxVal    uint8
-}
-
-// PinsMap is a map of all pins on a board
-type PinsMap map[uint8]*boardPin
+// PinsMap is a map of all pins on a board, the key is the board pin number
+type PinsMap map[uint8]*boardpin.Pin
 
 // Board is the configuration of a board
 type Board struct {
@@ -101,69 +65,74 @@ func (b *Board) GobotDevices() []gobot.Device {
 	return allDevices
 }
 
-// GetBinaryPinNumbers gets all related pins of board
-func (b *Board) GetBinaryPinNumbers() map[uint8]struct{} {
-	return b.getPinsOfType(Binary, BinaryW, BinaryR, NBinary, NBinaryW, NBinaryR)
+// GetPinNumbers gets all pins of board
+func (b *Board) GetPinNumbers() (pinNumbers boardpin.PinNumbers) {
+	pinNumbers = make(boardpin.PinNumbers)
+	for pinNumber := range b.pins {
+		pinNumbers[pinNumber] = struct{}{}
+	}
+	return pinNumbers
 }
 
-// GetAnalogPinNumbers gets all related pins of board
-func (b *Board) GetAnalogPinNumbers() map[uint8]struct{} {
-	return b.getPinsOfType(Analog, AnalogW, AnalogR)
+// GetPinNumbersOfType gets board pins of given types
+func (b *Board) GetPinNumbersOfType(pinTypes ...boardpin.PinType) (pinNumbers boardpin.PinNumbers) {
+	pinNumbers = make(boardpin.PinNumbers)
+	for pinNumber, boardPin := range b.pins {
+		if boardpin.ContainsPinType(pinTypes, boardPin.PinType) {
+			pinNumbers[pinNumber] = struct{}{}
+		}
+	}
+	return pinNumbers
 }
 
-// GetMemoryPinNumbers gets all related pins of board
-func (b *Board) GetMemoryPinNumbers() map[uint8]struct{} {
-	return b.getPinsOfType(Memory, MemoryW, MemoryR)
-}
-
-// SetValue sets the given pin of board to the given value
-func (b *Board) SetValue(boardPinNr uint8, value uint8) (err error) {
-	var bPin *boardPin
+// WriteValue sets the given pin of board to the given value
+func (b *Board) WriteValue(boardPinNr uint8, value uint8) (err error) {
+	var bPin *boardpin.Pin
 	if bPin, err = b.getBoardPin(boardPinNr); err != nil {
 		return
 	}
-	switch bPin.pinType {
-	case Binary:
+	switch bPin.PinType {
+	case boardpin.Binary:
 		err = b.writeGPIO(bPin, value)
-	case BinaryW:
+	case boardpin.BinaryW:
 		err = b.writeGPIO(bPin, value)
-	case NBinary:
+	case boardpin.NBinary:
 		err = b.writeGPIO(bPin, getNegatedBinaryValue(value))
-	case NBinaryW:
+	case boardpin.NBinaryW:
 		err = b.writeGPIO(bPin, getNegatedBinaryValue(value))
-	case Memory:
+	case boardpin.Memory:
 		err = b.writeEEPROM(bPin, value)
-	case MemoryW:
+	case boardpin.MemoryW:
 		err = b.writeEEPROM(bPin, value)
 	default:
-		err = fmt.Errorf("Pin %d with type %v not allowed to set with value %d", boardPinNr, bPin.pinType, value)
+		err = fmt.Errorf("Pin %d with type %v not allowed to set with value %d", boardPinNr, bPin.PinType, value)
 	}
 	return
 }
 
 // ReadValue reads the value of the given pin of board
 func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
-	var bPin *boardPin
+	var bPin *boardpin.Pin
 	if bPin, err = b.getBoardPin(boardPinNr); err != nil {
 		return
 	}
-	switch bPin.pinType {
-	case Binary:
+	switch bPin.PinType {
+	case boardpin.Binary:
 		value, err = b.readGPIO(bPin)
-	case BinaryR:
+	case boardpin.BinaryR:
 		value, err = b.readGPIO(bPin)
-	case NBinary:
-		value, err = b.readGPIO(bPin)
-		value = getNegatedBinaryValue(value)
-	case NBinaryR:
+	case boardpin.NBinary:
 		value, err = b.readGPIO(bPin)
 		value = getNegatedBinaryValue(value)
-	case Memory:
+	case boardpin.NBinaryR:
+		value, err = b.readGPIO(bPin)
+		value = getNegatedBinaryValue(value)
+	case boardpin.Memory:
 		value, err = b.readEEPROM(bPin)
-	case MemoryR:
+	case boardpin.MemoryR:
 		value, err = b.readEEPROM(bPin)
 	default:
-		err = fmt.Errorf("Pin %d with type %v not allowed to read value", boardPinNr, bPin.pinType)
+		err = fmt.Errorf("Pin %d with type %v not allowed to read value", boardPinNr, bPin.PinType)
 	}
 	return
 }
@@ -180,7 +149,7 @@ func (b *Board) ShowBoardConfig() {
 	fmt.Printf("\n------ Pins on board ------")
 	for pinNr, boardPin := range b.pins {
 		fmt.Printf("\nBoard pin number: %d", pinNr)
-		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.pinType, boardPin.chipPinNr, boardPin.chipID)
+		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.PinType, boardPin.ChipPinNr, boardPin.ChipID)
 	}
 	fmt.Printf("\n------ Debug done ------\n")
 }
@@ -189,20 +158,7 @@ func (b *Board) String() string {
 	return fmt.Sprintf("Name: %s, Chips: %d, Pins: %d", b.name, len(b.chips), len(b.pins))
 }
 
-func (pt PinType) String() string {
-	switch pt {
-	case Memory:
-		return "EEPROM address"
-	case Binary:
-		return "GPIO pin"
-	case Analog:
-		return "Ana pin"
-	default:
-		return "Unknown pintype"
-	}
-}
-
-func (b *Board) getBoardPin(boardPinNr uint8) (boardPin *boardPin, err error) {
+func (b *Board) getBoardPin(boardPinNr uint8) (boardPin *boardpin.Pin, err error) {
 	var ok bool
 	if boardPin, ok = b.pins[boardPinNr]; !ok {
 		err = fmt.Errorf("Pin %d not there in board %s", boardPinNr, b.name)
@@ -210,34 +166,15 @@ func (b *Board) getBoardPin(boardPinNr uint8) (boardPin *boardPin, err error) {
 	return
 }
 
-func (b *Board) getDriver(boardPin *boardPin) (driver DriverOperations, err error) {
+func (b *Board) getDriver(boardPin *boardpin.Pin) (driver DriverOperations, err error) {
 	var ok bool
 	var chip *chip
-	if chip, ok = b.chips[boardPin.chipID]; !ok {
-		err = fmt.Errorf("Driver for %s not there in board %s", boardPin.chipID, b.name)
+	if chip, ok = b.chips[boardPin.ChipID]; !ok {
+		err = fmt.Errorf("Driver for %s not there in board %s", boardPin.ChipID, b.name)
 		return
 	}
 	driver = chip.driver
 	return
-}
-
-func (b *Board) getPinsOfType(pinTypes ...PinType) (pinNumbers map[uint8]struct{}) {
-	pinNumbers = make(map[uint8]struct{})
-	for pinNumber, boardPin := range b.pins {
-		if containsPinType(pinTypes, boardPin.pinType) {
-			pinNumbers[pinNumber] = struct{}{}
-		}
-	}
-	return pinNumbers
-}
-
-func containsPinType(pinTypes []PinType, pinTypeToSearchFor PinType) bool {
-	for _, pinType := range pinTypes {
-		if pinType == pinTypeToSearchFor {
-			return true
-		}
-	}
-	return false
 }
 
 func getNegatedBinaryValue(value uint8) uint8 {

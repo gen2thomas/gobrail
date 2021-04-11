@@ -1,6 +1,6 @@
 package raildevices
 
-// A common output is a rail device used for other rail devices to minimize test effort
+// A common output is a rail device used for other output rail devices to minimize implementation and test effort
 
 import (
 	"fmt"
@@ -15,23 +15,18 @@ type CommonOutputDevice struct {
 	oldState       map[string]bool
 	state          bool
 	defectiveState bool
-	BoardsAPI      BoardsAPIer
 	inputDevice    Inputer
 	inputInversion bool
 	firstRun       bool
 }
 
-// NewCommonOutput creates an instance of a rail device with one output
-func NewCommonOutput(boardsAPI BoardsAPIer, boardID string, boardPinNr uint8, railDeviceName string, timing Timing, label string) (co *CommonOutputDevice, err error) {
-	if err = boardsAPI.MapBinaryPin(boardID, boardPinNr, railDeviceName); err != nil {
-		return
-	}
+// NewCommonOutput creates an instance of a rail device for usage with outputs
+func NewCommonOutput(railDeviceName string, timing Timing, label string) (co *CommonOutputDevice) {
 	co = &CommonOutputDevice{
 		label:          label,
 		railDeviceName: railDeviceName,
 		timing:         timing,
 		oldState:       make(map[string]bool),
-		BoardsAPI:      boardsAPI,
 		firstRun:       true,
 	}
 	return
@@ -53,37 +48,16 @@ func (o *CommonOutputDevice) IsOn() bool {
 }
 
 // IsDefective states true when Common output device is defective
-func (o *CommonOutputDevice) IsDefective() bool {
-	return o.defectiveState
-}
-
-// SwitchOn will try to switch on the Common output device
-func (o *CommonOutputDevice) SwitchOn() (err error) {
-	if o.IsDefective() {
+func (o *CommonOutputDevice) IsDefective() (err error) {
+	if o.defectiveState {
 		err = fmt.Errorf("The %s '%s' is defective, please repair before switch on", o.label, o.railDeviceName)
-		return
 	}
-	o.TimingForStart()
-	if err = o.BoardsAPI.SetValue(o.railDeviceName, 1); err != nil {
-		return
-	}
-	o.SetState(true)
-	return
-}
-
-// SwitchOff will switch off the Common output device
-func (o *CommonOutputDevice) SwitchOff() (err error) {
-	o.TimingForStop()
-	if err = o.BoardsAPI.SetValue(o.railDeviceName, 0); err != nil {
-		return
-	}
-	o.SetState(false)
 	return
 }
 
 // MakeDefective causes the Common output device in an simulated defective state
-func (o *CommonOutputDevice) MakeDefective() (err error) {
-	if err = o.SwitchOff(); err != nil {
+func (o *CommonOutputDevice) MakeDefective(offFunc func() (err error)) (err error) {
+	if err = offFunc(); err != nil {
 		err = fmt.Errorf("Can't switch off before make defective, %w", err)
 		return
 	}
@@ -108,7 +82,7 @@ func (o *CommonOutputDevice) RailDeviceName() string {
 // Connect is connecting an input for use in Run()
 func (o *CommonOutputDevice) Connect(inputDevice Inputer) (err error) {
 	if o.inputDevice != nil {
-		return fmt.Errorf("The %s '%s' is already mapped to an input '%s'", o.label, o.railDeviceName, o.inputDevice.RailDeviceName())
+		return fmt.Errorf("The %s '%s' is already connected to an input '%s'", o.label, o.railDeviceName, o.inputDevice.RailDeviceName())
 	}
 	if o.railDeviceName == inputDevice.RailDeviceName() {
 		return fmt.Errorf("Circular mapping blocked for %s '%s'", o.label, o.railDeviceName)
@@ -163,14 +137,4 @@ func (o *CommonOutputDevice) TimingForStop() {
 // SetState sets the new state
 func (o *CommonOutputDevice) SetState(newState bool) {
 	o.state = newState
-}
-
-func limitTiming(timing Timing, maxTime time.Duration) Timing {
-	if timing.Starting > maxTime {
-		timing.Starting = maxTime
-	}
-	if timing.Stopping > maxTime {
-		timing.Stopping = maxTime
-	}
-	return timing
 }

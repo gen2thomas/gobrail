@@ -40,28 +40,22 @@ func main() {
 
 	adaptor := digispark.NewAdaptor()
 	board := board.NewBoardTyp2(adaptor, boardRecipePca9501.ChipDevAddr, boardRecipePca9501.Name)
-	firstLoop := true
 	pin := uint8(0)
 	value := uint8(0)
+	fmt.Printf("\n------ Config ------\n")
+	board.ShowBoardConfig()
+	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
 		gobot.Every(1000*time.Millisecond, func() {
-			if firstLoop {
-				fmt.Printf("\n------ Config ------\n")
-				board.ShowBoardConfig()
-				time.Sleep(500 * time.Millisecond)
-				fmt.Printf("\n------ Now running ------\n")
-				firstLoop = false
-			} else {
-				board.SetValue(pin, value)
-				pin++
-				if pin > 7 {
-					pin = 0
-					value++
-				}
-				if value > 1 {
-					value = 0
-				}
+			board.WriteValue(pin, value)
+			pin++
+			if pin > 3 {
+				pin = 0
+				value++
+			}
+			if value > 1 {
+				value = 0
 			}
 		})
 	}

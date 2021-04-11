@@ -4,7 +4,7 @@ excluding_vendor := $(shell go list ./... | grep -v /vendor/)
 
 # Run latest working level
 run:
-	go run examples/main_turnoutwithsignal.go
+	go run cmd/main_creator.go
 
 # Run tests on all non-vendor directories
 test:

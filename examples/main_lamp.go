@@ -23,45 +23,39 @@ var boardRecipePca9501 = boardsapi.BoardRecipe{
 	BoardType:   boardsapi.Typ2,
 }
 
+var boardAPI *boardsapi.BoardsAPI
+
 func main() {
 
 	adaptor := digispark.NewAdaptor()
-	boardAPI := boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
+	boardAPI = boardsapi.NewBoardsAPI(adaptor, []boardsapi.BoardRecipe{boardRecipePca9501})
 	loopCounter := 0
-	var lamp *raildevices.LampDevice
+	fmt.Printf("\n------ Init Lamp ------\n")
+	lamp := createLamp("Strassenlampe 1", boardID, 0, raildevices.Timing{})
+	fmt.Printf("\n------ Used pins ------\n")
+	uPins := boardAPI.GetUsedPins(boardID)
+	fmt.Println(uPins)
+	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
 		gobot.Every(4000*time.Millisecond, func() {
-			if loopCounter == 0 {
-				time.Sleep(2000 * time.Millisecond)
-				fmt.Printf("\n------ Init Lamp ------\n")
-				lamp, _ = raildevices.NewLamp(boardAPI, boardID, 0, "Strassenlampe 1", raildevices.Timing{})
-				fmt.Printf("\n------ Now running ------\n")
-				fmt.Printf("\n------ Mapped pins ------\n")
-				mPins := boardAPI.GetMappedAPIBinaryPins(boardID)
-				fmt.Println(mPins)
-				mPins = boardAPI.GetMappedAPIMemoryPins(boardID)
-				fmt.Println(mPins)
-			}
 			lamp.SwitchOn()
 			time.Sleep(2000 * time.Millisecond)
 			lamp.SwitchOff()
 			if loopCounter == 2 {
 				if deferr := lamp.MakeDefective(); deferr == nil {
-					fmt.Printf("Lamp '%s' is now defective, please repair\n", lamp.Name())
+					fmt.Printf("Lamp '%s' is now defective, please repair\n", lamp.RailDeviceName())
 				}
 			}
 			if loopCounter == 5 {
 				if reperr := lamp.Repair(); reperr == nil {
-					fmt.Printf("Lamp '%s' was repaired\n", lamp.Name())
+					fmt.Printf("Lamp '%s' was repaired\n", lamp.RailDeviceName())
 				}
 			}
-			if isDefect, ierr := lamp.IsDefective(); ierr == nil {
-				if isDefect {
-					fmt.Printf("Lamp '%s' is defective\n", lamp.Name())
-				} else {
-					fmt.Printf("Lamp '%s' is working\n", lamp.Name())
-				}
+			if isDefectErr := lamp.IsDefective(); isDefectErr != nil {
+				fmt.Printf("Lamp '%s' is defective\n", lamp.RailDeviceName())
+			} else {
+			  fmt.Printf("Lamp '%s' is working\n", lamp.RailDeviceName())
 			}
 			loopCounter++
 		})
@@ -77,4 +71,11 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func createLamp(railDeviceName string, boardID string, boardPinNr uint8, timing raildevices.Timing) (lamp *raildevices.LampDevice) {
+	co := raildevices.NewCommonOutput(railDeviceName, timing, "lamp")
+	output, _ := boardAPI.GetOutputPin(boardID, boardPinNr)
+	lamp = raildevices.NewLamp(co, output)
+	return
 }
