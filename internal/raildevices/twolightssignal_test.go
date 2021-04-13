@@ -11,7 +11,7 @@ func TestTwoLightsSignalNew(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("tls dev", Timing{}, "tls")
+	co := NewCommonOutput("tls dev", Timing{})
 	output1 := NewOutputMock(&WriteMock{})
 	output2 := NewOutputMock(&WriteMock{})
 	// act
@@ -28,7 +28,7 @@ func TestTwoLightsSignalSwitchOn(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("tls dev", Timing{}, "tls")
+	co := NewCommonOutput("tls dev", Timing{})
 	wmPass := WriteMock{}
 	wmStop := WriteMock{}
 	outputPass := NewOutputMock(&wmPass)
@@ -49,7 +49,7 @@ func TestTwoLightsSignalSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("tls dev", Timing{}, "tls")
+	co := NewCommonOutput("tls dev", Timing{})
 	wmPass := WriteMock{}
 	wmStop := WriteMock{}
 	outputPass := NewOutputMock(&wmPass)

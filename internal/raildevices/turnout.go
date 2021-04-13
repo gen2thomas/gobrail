@@ -59,8 +59,3 @@ func (s *TurnoutDevice) SwitchOff() (err error) {
 	s.SetState(false)
 	return
 }
-
-// Run is called in a loop and will make action dependant on the input device
-func (s *TurnoutDevice) Run() (err error) {
-	return s.RunCommon(s.SwitchOn, s.SwitchOff)
-}

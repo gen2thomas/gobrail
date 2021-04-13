@@ -9,25 +9,19 @@ import (
 
 // CommonOutputDevice describes a Common output device with one output
 type CommonOutputDevice struct {
-	label          string
 	railDeviceName string
 	timing         Timing
 	oldState       map[string]bool
 	state          bool
 	defectiveState bool
-	inputDevice    Inputer
-	inputInversion bool
-	firstRun       bool
 }
 
 // NewCommonOutput creates an instance of a rail device for usage with outputs
-func NewCommonOutput(railDeviceName string, timing Timing, label string) (co *CommonOutputDevice) {
+func NewCommonOutput(railDeviceName string, timing Timing) (co *CommonOutputDevice) {
 	co = &CommonOutputDevice{
-		label:          label,
 		railDeviceName: railDeviceName,
 		timing:         timing,
 		oldState:       make(map[string]bool),
-		firstRun:       true,
 	}
 	return
 }
@@ -50,7 +44,7 @@ func (o *CommonOutputDevice) IsOn() bool {
 // IsDefective states true when Common output device is defective
 func (o *CommonOutputDevice) IsDefective() (err error) {
 	if o.defectiveState {
-		err = fmt.Errorf("The %s '%s' is defective, please repair before switch on", o.label, o.railDeviceName)
+		err = fmt.Errorf("The '%s' is defective, please repair before switch on", o.railDeviceName)
 	}
 	return
 }
@@ -68,7 +62,7 @@ func (o *CommonOutputDevice) MakeDefectiveCommon(offFunc func() (err error)) (er
 // Repair will fix the simulated defective state
 func (o *CommonOutputDevice) Repair() (err error) {
 	if o.IsOn() {
-		return fmt.Errorf("The %s '%s' can be only repaired when off", o.label, o.railDeviceName)
+		return fmt.Errorf("The '%s' can be only repaired when off", o.railDeviceName)
 	}
 	o.defectiveState = false
 	return
@@ -77,51 +71,6 @@ func (o *CommonOutputDevice) Repair() (err error) {
 // RailDeviceName gets the name of the Common output device
 func (o *CommonOutputDevice) RailDeviceName() string {
 	return o.railDeviceName
-}
-
-// Connect is connecting an input for use in Run()
-func (o *CommonOutputDevice) Connect(inputDevice Inputer) (err error) {
-	if o.inputDevice != nil {
-		return fmt.Errorf("The %s '%s' is already connected to an input '%s'", o.label, o.railDeviceName, o.inputDevice.RailDeviceName())
-	}
-	if o.railDeviceName == inputDevice.RailDeviceName() {
-		return fmt.Errorf("Circular mapping blocked for %s '%s'", o.label, o.railDeviceName)
-	}
-	o.inputDevice = inputDevice
-	return nil
-}
-
-// ConnectInverse is connecting an input for use in Run(), but with inversed action
-func (o *CommonOutputDevice) ConnectInverse(inputDevice Inputer) (err error) {
-	o.Connect(inputDevice)
-	o.inputInversion = true
-	return nil
-}
-
-// RunCommon is called in a loop and will make action dependant on the input device
-func (o *CommonOutputDevice) RunCommon(onFunc func() (err error), offFunc func() (err error)) (err error) {
-	if o.inputDevice == nil {
-		return fmt.Errorf("The %s '%s' can't run, please map to an input first", o.label, o.railDeviceName)
-	}
-	var changed bool
-	if changed, err = o.inputDevice.StateChanged(o.railDeviceName); err != nil {
-		return err
-	}
-	if !(changed || o.firstRun) {
-		return
-	}
-	o.firstRun = false
-	if o.inputDevice.IsOn() != o.inputInversion {
-		err = onFunc()
-	} else {
-		err = offFunc()
-	}
-	return
-}
-
-// ReleaseInput is used to unmap
-func (o *CommonOutputDevice) ReleaseInput() {
-	o.inputDevice = nil
 }
 
 // TimingForStart execute sleep with starttime

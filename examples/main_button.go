@@ -99,7 +99,7 @@ func createToggleButton(railDeviceName string, boardID string, boardPinNr uint8)
 }
 
 func createLamp(railDeviceName string, boardID string, boardPinNr uint8, timing raildevices.Timing) (lamp *raildevices.LampDevice) {
-	co := raildevices.NewCommonOutput(railDeviceName, timing, "lamp")
+	co := raildevices.NewCommonOutput(railDeviceName, timing)
 	output, _ := boardAPI.GetOutputPin(boardID, boardPinNr)
 	lamp = raildevices.NewLamp(co, output)
 	return

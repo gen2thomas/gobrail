@@ -12,11 +12,10 @@ func TestCommonOutputNew(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	// act
-	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
+	co := NewCommonOutput("lamp dev", Timing{})
 	// assert
 	require.NotNil(co)
 	assert.Equal("lamp dev", co.railDeviceName)
-	assert.Equal("lamp", co.label)
 	assert.Equal(false, co.IsOn())
 	assert.Nil(co.IsDefective())
 	stateChanged, _ := co.StateChanged("v")
@@ -26,7 +25,7 @@ func TestCommonOutputNew(t *testing.T) {
 func TestCommonOutputIsOnSetStateStateChanged(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
-	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
+	co := NewCommonOutput("lamp dev", Timing{})
 	// act
 	stateChanged0, _ := co.StateChanged("v")
 	state0 := co.IsOn()
@@ -63,7 +62,7 @@ func TestCommonOutputIsDefectiveMakeDefectiveRepairStateChanged(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
+	co := NewCommonOutput("lamp dev", Timing{})
 	// act
 	deferr0 := co.IsDefective()
 	stateChanged0, _ := co.StateChanged("v")
@@ -90,7 +89,7 @@ func TestCommonOutputMakeDefectiveWillSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
+	co := NewCommonOutput("lamp dev", Timing{})
 	// act
 	co.SetState(true)
 	err := co.MakeDefectiveCommon(func() error {

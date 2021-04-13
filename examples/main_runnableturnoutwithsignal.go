@@ -13,6 +13,7 @@ import (
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
+	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
 )
 
 // A toggle button is used to change the state of the railroad switch.
@@ -76,18 +77,79 @@ func createToggleButton(railDeviceName string, boardID string, boardPinNr uint8)
 	return
 }
 
-func createTurnout(railDeviceName string, boardID string, boardPinNrBranch uint8, boardPinNrMain uint8, timing raildevices.Timing) (turnout *raildevices.TurnoutDevice) {
+func createTurnout(railDeviceName string, boardID string, boardPinNrBranch uint8, boardPinNrMain uint8, timing raildevices.Timing) (rd *runableDevice) {
 	outputBranch, _ := boardAPI.GetOutputPin(boardID, boardPinNrBranch)
 	outputMain, _ := boardAPI.GetOutputPin(boardID, boardPinNrMain)
-	co := raildevices.NewCommonOutput(railDeviceName, timing, "turnout")
-	turnout = raildevices.NewTurnout(co, outputBranch, outputMain)
+	co := raildevices.NewCommonOutput(railDeviceName, timing)
+	turnout := raildevices.NewTurnout(co, outputBranch, outputMain)
+	rd = newRunableDevice(turnout)
 	return
 }
 
-func createTwoLightSignal(railDeviceName string, boardID string, boardPinNrPass uint8, boardPinNrStop uint8, timing raildevices.Timing) (signal *raildevices.TwoLightsSignalDevice) {
+func createTwoLightSignal(railDeviceName string, boardID string, boardPinNrPass uint8, boardPinNrStop uint8, timing raildevices.Timing) (rd *runableDevice) {
 	outputPass, _ := boardAPI.GetOutputPin(boardID, boardPinNrPass)
 	outputStop, _ := boardAPI.GetOutputPin(boardID, boardPinNrStop)
-	co := raildevices.NewCommonOutput(railDeviceName, timing, "two light signal")
-	signal = raildevices.NewTwoLightsSignal(co, outputPass, outputStop)
+	co := raildevices.NewCommonOutput(railDeviceName, timing)
+	signal := raildevices.NewTwoLightsSignal(co, outputPass, outputStop)
+	rd = newRunableDevice(signal)
 	return
+}
+
+type runableDevice struct {
+	raildevicesapi.Runner
+	connectedInput raildevicesapi.Inputer
+	inputInversion bool
+	firstRun       bool
+}
+
+func newRunableDevice(outDev raildevicesapi.Runner) *runableDevice {
+	return &runableDevice{
+		Runner:   outDev,
+		firstRun: true,
+	}
+}
+
+// Connect is connecting an input for use in Run()
+func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer) (err error) {
+	if o.connectedInput != nil {
+		return fmt.Errorf("The '%s' is already connected to an input '%s'", o.RailDeviceName(), o.connectedInput.RailDeviceName())
+	}
+	if o.RailDeviceName() == inputDevice.RailDeviceName() {
+		return fmt.Errorf("Circular mapping blocked for '%s'", o.RailDeviceName())
+	}
+	o.connectedInput = inputDevice
+	return nil
+}
+
+// ConnectInverse is connecting an input for use in Run(), but with inversed action
+func (o *runableDevice) ConnectInverse(inputDevice raildevicesapi.Inputer) (err error) {
+	o.Connect(inputDevice)
+	o.inputInversion = true
+	return nil
+}
+
+// RunCommon is called in a loop and will make action dependant on the input device
+func (o *runableDevice) Run() (err error) {
+	if o.connectedInput == nil {
+		return fmt.Errorf("The '%s' can't run, please map to an input first", o.RailDeviceName())
+	}
+	var changed bool
+	if changed, err = o.connectedInput.StateChanged(o.RailDeviceName()); err != nil {
+		return err
+	}
+	if !(changed || o.firstRun) {
+		return
+	}
+	o.firstRun = false
+	if o.connectedInput.IsOn() != o.inputInversion {
+		err = o.SwitchOn()
+	} else {
+		err = o.SwitchOff()
+	}
+	return
+}
+
+// ReleaseInput is used to unmap
+func (o *runableDevice) ReleaseInput() {
+	o.connectedInput = nil
 }

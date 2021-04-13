@@ -13,6 +13,7 @@ import (
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
+	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
 )
 
 // Two buttons are used to switch on and off a lamp.
@@ -82,9 +83,70 @@ func createToggleButton(railDeviceName string, boardID string, boardPinNr uint8)
 	return
 }
 
-func createLamp(railDeviceName string, boardID string, boardPinNr uint8, timing raildevices.Timing) (lamp *raildevices.LampDevice) {
-	co := raildevices.NewCommonOutput(railDeviceName, timing, "lamp")
+func createLamp(railDeviceName string, boardID string, boardPinNr uint8, timing raildevices.Timing) (rd *runableDevice) {
+	co := raildevices.NewCommonOutput(railDeviceName, timing)
 	output, _ := boardAPI.GetOutputPin(boardID, boardPinNr)
-	lamp = raildevices.NewLamp(co, output)
+	lamp := raildevices.NewLamp(co, output)
+	rd = newRunableDevice(lamp)
 	return
 }
+
+type runableDevice struct {
+	raildevicesapi.Runner
+	connectedInput raildevicesapi.Inputer
+	inputInversion bool
+	firstRun       bool
+}
+
+func newRunableDevice(outDev raildevicesapi.Runner) *runableDevice {
+	return &runableDevice{
+		Runner:   outDev,
+		firstRun: true,
+	}
+}
+
+// Connect is connecting an input for use in Run()
+func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer) (err error) {
+	if o.connectedInput != nil {
+		return fmt.Errorf("The '%s' is already connected to an input '%s'", o.RailDeviceName(), o.connectedInput.RailDeviceName())
+	}
+	if o.RailDeviceName() == inputDevice.RailDeviceName() {
+		return fmt.Errorf("Circular mapping blocked for '%s'", o.RailDeviceName())
+	}
+	o.connectedInput = inputDevice
+	return nil
+}
+
+// ConnectInverse is connecting an input for use in Run(), but with inversed action
+func (o *runableDevice) ConnectInverse(inputDevice raildevicesapi.Inputer) (err error) {
+	o.Connect(inputDevice)
+	o.inputInversion = true
+	return nil
+}
+
+// RunCommon is called in a loop and will make action dependant on the input device
+func (o *runableDevice) Run() (err error) {
+	if o.connectedInput == nil {
+		return fmt.Errorf("The '%s' can't run, please map to an input first", o.RailDeviceName())
+	}
+	var changed bool
+	if changed, err = o.connectedInput.StateChanged(o.RailDeviceName()); err != nil {
+		return err
+	}
+	if !(changed || o.firstRun) {
+		return
+	}
+	o.firstRun = false
+	if o.connectedInput.IsOn() != o.inputInversion {
+		err = o.SwitchOn()
+	} else {
+		err = o.SwitchOff()
+	}
+	return
+}
+
+// ReleaseInput is used to unmap
+func (o *runableDevice) ReleaseInput() {
+	o.connectedInput = nil
+}
+

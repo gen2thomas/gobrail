@@ -11,7 +11,7 @@ func TestTurnoutNew(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("turnout dev", Timing{}, "turnout")
+	co := NewCommonOutput("turnout dev", Timing{})
 	output1 := NewOutputMock(&WriteMock{})
 	output2 := NewOutputMock(&WriteMock{})
 	// act
@@ -28,7 +28,7 @@ func TestTurnoutSwitchOn(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("turnout dev", Timing{}, "turnout")
+	co := NewCommonOutput("turnout dev", Timing{})
 	wmBranch := WriteMock{}
 	wmMain := WriteMock{}
 	outputBranch := NewOutputMock(&wmBranch)
@@ -49,7 +49,7 @@ func TestTurnoutSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
-	co := NewCommonOutput("turnout dev", Timing{}, "turnout")
+	co := NewCommonOutput("turnout dev", Timing{})
 	wmBranch := WriteMock{}
 	wmMain := WriteMock{}
 	outputBranch := NewOutputMock(&wmBranch)

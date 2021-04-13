@@ -49,8 +49,3 @@ func (l *LampDevice) SwitchOff() (err error) {
 func (l *LampDevice) MakeDefective() (err error) {
 	return l.MakeDefectiveCommon(l.SwitchOff)
 }
-
-// Run is called in a loop and will make action dependant on the input device
-func (l *LampDevice) Run() (err error) {
-	return l.RunCommon(l.SwitchOn, l.SwitchOff)
-}
