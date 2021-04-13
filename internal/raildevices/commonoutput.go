@@ -55,8 +55,8 @@ func (o *CommonOutputDevice) IsDefective() (err error) {
 	return
 }
 
-// MakeDefective causes the Common output device in an simulated defective state
-func (o *CommonOutputDevice) MakeDefective(offFunc func() (err error)) (err error) {
+// MakeDefectiveCommon causes the Common output device in an simulated defective state
+func (o *CommonOutputDevice) MakeDefectiveCommon(offFunc func() (err error)) (err error) {
 	if err = offFunc(); err != nil {
 		err = fmt.Errorf("Can't switch off before make defective, %w", err)
 		return
@@ -98,8 +98,8 @@ func (o *CommonOutputDevice) ConnectInverse(inputDevice Inputer) (err error) {
 	return nil
 }
 
-// Run is called in a loop and will make action dependant on the input device
-func (o *CommonOutputDevice) Run(onFunc func() (err error), offFunc func() (err error)) (err error) {
+// RunCommon is called in a loop and will make action dependant on the input device
+func (o *CommonOutputDevice) RunCommon(onFunc func() (err error), offFunc func() (err error)) (err error) {
 	if o.inputDevice == nil {
 		return fmt.Errorf("The %s '%s' can't run, please map to an input first", o.label, o.railDeviceName)
 	}

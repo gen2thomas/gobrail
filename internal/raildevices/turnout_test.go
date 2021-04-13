@@ -18,8 +18,8 @@ func TestTurnoutNew(t *testing.T) {
 	turnout := NewTurnout(co, output1, output2)
 	// assert
 	require.NotNil(turnout)
-	require.NotNil(turnout.cmnOutDev)
-	assert.Equal(co, turnout.cmnOutDev)
+	require.NotNil(turnout.CommonOutputDevice)
+	assert.Equal(co, turnout.CommonOutputDevice)
 	assert.Equal(output1, turnout.outputBranch)
 	assert.Equal(output2, turnout.outputMain)
 }

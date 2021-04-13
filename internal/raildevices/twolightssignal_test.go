@@ -18,8 +18,8 @@ func TestTwoLightsSignalNew(t *testing.T) {
 	tls := NewTwoLightsSignal(co, output1, output2)
 	// assert
 	require.NotNil(tls)
-	require.NotNil(tls.cmnOutDev)
-	assert.Equal(co, tls.cmnOutDev)
+	require.NotNil(tls.CommonOutputDevice)
+	assert.Equal(co, tls.CommonOutputDevice)
 	assert.Equal(output1, tls.outputPass)
 	assert.Equal(output2, tls.outputStop)
 }

@@ -68,7 +68,7 @@ func TestCommonOutputIsDefectiveMakeDefectiveRepairStateChanged(t *testing.T) {
 	deferr0 := co.IsDefective()
 	stateChanged0, _ := co.StateChanged("v")
 	//
-	err1 := co.MakeDefective(func() error { return nil })
+	err1 := co.MakeDefectiveCommon(func() error { return nil })
 	stateChanged1, _ := co.StateChanged("v")
 	deferr1 := co.IsDefective()
 	//
@@ -93,7 +93,7 @@ func TestCommonOutputMakeDefectiveWillSwitchOff(t *testing.T) {
 	co := NewCommonOutput("lamp dev", Timing{}, "lamp")
 	// act
 	co.SetState(true)
-	err := co.MakeDefective(func() error {
+	err := co.MakeDefectiveCommon(func() error {
 		co.SetState(false)
 		return nil
 	})

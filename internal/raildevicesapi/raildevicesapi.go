@@ -8,9 +8,22 @@ import (
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 )
 
+// Outputer is an interface for output devices
+type Outputer interface {
+	RailDeviceName() string
+	// Connect is to use an input for action (IsOn --> e.g. SwitchOn)
+	Connect(input raildevices.Inputer) (err error)
+	// ConnectIverse to use an input for inverse action (IsOn --> e.g. SwitchOff)
+	ConnectInverse(input raildevices.Inputer) (err error)
+	// Run must be called in a loop
+	Run() (err error)
+	// ReleaseInput is used to unmap the input
+	ReleaseInput()
+}
+
 // RailDevice can run in loops
 type RailDevice interface {
-	raildevices.Outputer
+	Outputer
 	raildevices.Inputer
 }
 
