@@ -3,8 +3,10 @@ package raildevicesapi
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gen2thomas/gobrail/internal/boardpin"
+	"github.com/gen2thomas/gobrail/internal/devicerecipe"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 )
 
@@ -35,34 +37,6 @@ type BoardsIOAPIer interface {
 	GetOutputPin(boardID string, boardPinNr uint8) (boardPin *boardpin.Output, err error)
 }
 
-// RailDeviceRecipe describes a recipe to creat an new rail device
-type RailDeviceRecipe struct {
-	Name             string
-	Type             railDeviceType
-	BoardID          string
-	BoardPinNr       uint8
-	BoardPinNrSecond uint8
-	Timing           raildevices.Timing
-	Connect          string
-}
-
-type railDeviceType uint8
-
-const (
-	// Button is a input device with one input
-	Button railDeviceType = iota
-	// ToggleButton is a input device with one input
-	ToggleButton
-	// Lamp is a output device with one output
-	Lamp
-	// TwoLightsSignal is a output device with two outputs, both outputs can't have the same state
-	TwoLightsSignal
-	// Turnout is a output device with two outputs
-	Turnout
-	// TypUnknown is fo fallback
-	TypUnknown
-)
-
 // RailDeviceAPI describes the api
 type RailDeviceAPI struct {
 	boardsIOAPI    BoardsIOAPIer
@@ -84,23 +58,23 @@ func NewRailDevicesAPI(boardsIOAPI BoardsIOAPIer) *RailDeviceAPI {
 }
 
 // AddDevice creates a device from recipe and add it to the list
-func (di *RailDeviceAPI) AddDevice(deviceRecipe RailDeviceRecipe) (err error) {
+func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.RailDeviceRecipe) (err error) {
 	railDeviceKey := getKey(deviceRecipe.Name)
 	if _, ok := di.devices[railDeviceKey]; ok {
 		return fmt.Errorf("Rail device '%s' (key: %s) already in use", deviceRecipe.Name, railDeviceKey)
 	}
 	var inDev Inputer
 	var runDev *runableDevice
-	switch deviceRecipe.Type {
-	case Button:
+	switch devicerecipe.TypeMap[deviceRecipe.Type] {
+	case devicerecipe.Button:
 		inDev = di.createButton(deviceRecipe)
-	case ToggleButton:
+	case devicerecipe.ToggleButton:
 		inDev = di.createToggleButton(deviceRecipe)
-	case Lamp:
+	case devicerecipe.Lamp:
 		runDev = di.createLamp(deviceRecipe)
-	case TwoLightsSignal:
+	case devicerecipe.TwoLightsSignal:
 		runDev = di.createTwoLightSignal(deviceRecipe)
-	case Turnout:
+	case devicerecipe.Turnout:
 		runDev = di.createTurnout(deviceRecipe)
 	default:
 		return fmt.Errorf("Unknown type '%d'", deviceRecipe.Type)
@@ -146,39 +120,39 @@ func (di *RailDeviceAPI) Run() {
 	}
 }
 
-func (di *RailDeviceAPI) createButton(deviceRecipe RailDeviceRecipe) (button Inputer) {
-	input, _ := di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNr)
+func (di *RailDeviceAPI) createButton(deviceRecipe devicerecipe.RailDeviceRecipe) (button Inputer) {
+	input, _ := di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
 	button = raildevices.NewButton(input, deviceRecipe.Name)
 	return
 }
 
-func (di *RailDeviceAPI) createToggleButton(deviceRecipe RailDeviceRecipe) (toggleButton Inputer) {
-	input, _ := di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNr)
+func (di *RailDeviceAPI) createToggleButton(deviceRecipe devicerecipe.RailDeviceRecipe) (toggleButton Inputer) {
+	input, _ := di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
 	toggleButton = raildevices.NewToggleButton(input, deviceRecipe.Name)
 	return
 }
 
-func (di *RailDeviceAPI) createLamp(deviceRecipe RailDeviceRecipe) (rd *runableDevice) {
-	co := raildevices.NewCommonOutput(deviceRecipe.Name, deviceRecipe.Timing)
-	output, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNr)
+func (di *RailDeviceAPI) createLamp(deviceRecipe devicerecipe.RailDeviceRecipe) (rd *runableDevice) {
+	co := raildevices.NewCommonOutput(deviceRecipe.Name, getTiming(deviceRecipe))
+	output, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
 	lamp := raildevices.NewLamp(co, output)
 	rd = newRunableDevice(lamp)
 	return
 }
 
-func (di *RailDeviceAPI) createTwoLightSignal(deviceRecipe RailDeviceRecipe) (rd *runableDevice) {
-	outputPass, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNr)
-	outputStop, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSecond)
-	co := raildevices.NewCommonOutput(deviceRecipe.Name, deviceRecipe.Timing)
+func (di *RailDeviceAPI) createTwoLightSignal(deviceRecipe devicerecipe.RailDeviceRecipe) (rd *runableDevice) {
+	outputPass, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
+	outputStop, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSec)
+	co := raildevices.NewCommonOutput(deviceRecipe.Name, getTiming(deviceRecipe))
 	signal := raildevices.NewTwoLightsSignal(co, outputPass, outputStop)
 	rd = newRunableDevice(signal)
 	return
 }
 
-func (di *RailDeviceAPI) createTurnout(deviceRecipe RailDeviceRecipe) (rd *runableDevice) {
-	outputBranch, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNr)
-	outputMain, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSecond)
-	co := raildevices.NewCommonOutput(deviceRecipe.Name, deviceRecipe.Timing)
+func (di *RailDeviceAPI) createTurnout(deviceRecipe devicerecipe.RailDeviceRecipe) (rd *runableDevice) {
+	outputBranch, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
+	outputMain, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSec)
+	co := raildevices.NewCommonOutput(deviceRecipe.Name, getTiming(deviceRecipe))
 	turnout := raildevices.NewTurnout(co, outputBranch, outputMain)
 	rd = newRunableDevice(turnout)
 	return
@@ -187,4 +161,10 @@ func (di *RailDeviceAPI) createTurnout(deviceRecipe RailDeviceRecipe) (rd *runab
 func getKey(railDeviceName string) (railDeviceKey string) {
 	railDeviceKey = strings.Replace(strings.ToLower(railDeviceName), " ", "_", -1)
 	return
+}
+
+func getTiming(r devicerecipe.RailDeviceRecipe) raildevices.Timing {
+	start, _ := time.ParseDuration(r.StartingDelay)
+	stop, _ := time.ParseDuration(r.StartingDelay)
+	return raildevices.Timing{Starting: start, Stopping: stop}
 }

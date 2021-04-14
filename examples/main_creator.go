@@ -20,7 +20,7 @@ import (
 func main() {
 
 	adaptor := digispark.NewAdaptor()
-	rail, _ := gobrailcreator.Create(adaptor)
+	rail, _ := gobrailcreator.Create(adaptor, "./test/data/plan1.json", "./test/data/device_button4.json", "./test/data/device_togglebutton5.json")
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {

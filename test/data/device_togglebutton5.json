@@ -1,0 +1,7 @@
+{
+  "Name": "Taste 2",
+  "Type": "ToggleButton",
+  "BoardID": "IO_Mem_PCA9501",
+  "BoardPinNrPrim": 5
+}
+

@@ -6,13 +6,12 @@ package gobrailcreator
 
 import (
 	"fmt"
-	"time"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/i2c"
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
-	"github.com/gen2thomas/gobrail/internal/raildevices"
+	"github.com/gen2thomas/gobrail/internal/devicerecipe"
 	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
 )
 
@@ -25,7 +24,7 @@ type BoardsConfigAPIer interface {
 
 // RailDevicesAPIer is an interface to interact with rail devices
 type RailDevicesAPIer interface {
-	AddDevice(raildevicesapi.RailDeviceRecipe) (err error)
+	AddDevice(devicerecipe.RailDeviceRecipe) (err error)
 	ConnectNow() (err error)
 	Run()
 }
@@ -38,66 +37,30 @@ var boardRecipePca9501 = boardsapi.BoardRecipe{
 	BoardType:   boardsapi.Typ2,
 }
 
-var deviceRecipeTaste1 = raildevicesapi.RailDeviceRecipe{
-	Name:       "Taste 1",
-	Type:       raildevicesapi.Button,
-	BoardID:    boardID,
-	BoardPinNr: 4,
-}
-
-var deviceRecipeTaste2 = raildevicesapi.RailDeviceRecipe{
-	Name:       "Taste 2",
-	Type:       raildevicesapi.ToggleButton,
-	BoardID:    boardID,
-	BoardPinNr: 5,
-}
-
-var deviceRecipeSignalRot = raildevicesapi.RailDeviceRecipe{
-	Name:       "Signal rot",
-	Type:       raildevicesapi.Lamp,
-	BoardID:    boardID,
-	BoardPinNr: 0,
-	Timing:     raildevices.Timing{Stopping: 50 * time.Millisecond},
-	Connect:    "Taste 1",
-}
-
-var deviceRecipeSignalGruen = raildevicesapi.RailDeviceRecipe{
-	Name:       "Signal grün",
-	Type:       raildevicesapi.Lamp,
-	BoardID:    boardID,
-	BoardPinNr: 3,
-	Timing:     raildevices.Timing{},
-	Connect:    "Signal rot",
-}
-
-var deviceRecipeSignalRotGruen = raildevicesapi.RailDeviceRecipe{
-	Name:             "Rot grün Signal",
-	Type:             raildevicesapi.TwoLightsSignal,
-	BoardID:          boardID,
-	BoardPinNr:       2,
-	BoardPinNrSecond: 1,
-	Timing:           raildevices.Timing{},
-	Connect:          "Taste 2",
-}
-
 var boardCfgAPI BoardsConfigAPIer
 
 // Create will create a static device connection for run
-func Create(adaptor i2c.Connector) (deviceAPI RailDevicesAPIer, err error) {
-	fmt.Printf("\n------ Init Boards ------\n")
+func Create(adaptor i2c.Connector, planFile string, deviceFiles ...string) (deviceAPI RailDevicesAPIer, err error) {
+	fmt.Printf("\n------ Init APIs ------\n")
 	boardsAPI := boardsapi.NewBoardsAPI(adaptor)
-	boardsAPI.AddBoard(boardRecipePca9501)
-	fmt.Printf("\n------ Init Inputs ------\n")
 	deviceAPI = raildevicesapi.NewRailDevicesAPI(boardsAPI)
-	deviceAPI.AddDevice(deviceRecipeTaste1) // button
-	deviceAPI.AddDevice(deviceRecipeTaste2) // togButton
-	fmt.Printf("\n------ Init Outputs ------\n")
-	deviceAPI.AddDevice(deviceRecipeSignalRot)      // lampY1
-	deviceAPI.AddDevice(deviceRecipeSignalGruen)    // lampY2
-	deviceAPI.AddDevice(deviceRecipeSignalRotGruen) // signal
+	boardCfgAPI = boardsAPI
+	fmt.Printf("\n------ Init Boards ------\n")
+	boardCfgAPI.AddBoard(boardRecipePca9501)
+	fmt.Printf("\n------ Read Plan ------\n")
+	deviceRecipes, err := devicerecipe.ReadPlan(planFile)
+	fmt.Printf("\n------ Read and add some device recipes ------\n")
+	for _, deviceFile := range deviceFiles {
+		deviceRecipe, _ := devicerecipe.ReadDevice(deviceFile)
+		deviceRecipes = append(deviceRecipes, deviceRecipe)
+	}
+	fmt.Printf("\n------ Add devices from recipe list ------\n")
+	for _, deviceRecipe := range deviceRecipes {
+		deviceAPI.AddDevice(deviceRecipe)
+	}
 	fmt.Printf("\n------ Map inputs to outputs ------\n")
 	deviceAPI.ConnectNow()
-	boardCfgAPI = boardsAPI
+
 	return
 }
 
