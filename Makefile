@@ -9,7 +9,8 @@ run:
 
 # Run tests on all non-vendor directories
 test:
-	go test -v $(excluding_vendor)
+	go test -v $(excluding_vendor) -cover  -coverprofile=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
 
 # Correct format errors amd check linting
 style:

@@ -6,6 +6,7 @@ package boardpin
 
 import (
 	"fmt"
+	"strings"
 )
 
 // PinType is used to type safe the constants
@@ -38,6 +39,21 @@ const (
 	MemoryW
 )
 
+var pinTypeMsgMap = map[PinType]string{
+	Binary:   "Binary (GPIO pin)",
+	BinaryR:  "BinaryR (GPIO pin readonly)",
+	BinaryW:  "BinaryW (GPIO pin writeonly)",
+	NBinary:  "NBinary (negated GPIO pin)",
+	NBinaryR: "NBinaryR (negated GPIO pin readonly)",
+	NBinaryW: "NBinaryW (negated GPIO pin writeonly)",
+	Analog:   "Analog (Ana pin)",
+	AnalogR:  "AnalogR (Ana pin readonly)",
+	AnalogW:  "AnalogW (Ana pin writeonly)",
+	Memory:   "Memory (EEPROM address)",
+	MemoryR:  "MemoryR (EEPROM address readonly)",
+	MemoryW:  "MemoryW (EEPROM address writeonly)",
+}
+
 // Pin is the description of a board pin
 type Pin struct {
 	ChipID    string
@@ -66,8 +82,9 @@ type Output struct {
 // PinNumbers is used to store numbers, e.g. as list of free or used board pins
 type PinNumbers map[uint8]struct{}
 
-// ContainsPinType check a list of pin types contains a pin type
-func ContainsPinType(pinTypes []PinType, pinTypeToSearchFor PinType) bool {
+// PinTypeIsOneOf returns true when the type of the pin is in the list, otherwise false
+func (p Pin) PinTypeIsOneOf(pinTypes []PinType) bool {
+	pinTypeToSearchFor := p.PinType
 	for _, pinType := range pinTypes {
 		if pinType == pinTypeToSearchFor {
 			return true
@@ -76,23 +93,18 @@ func ContainsPinType(pinTypes []PinType, pinTypeToSearchFor PinType) bool {
 	return false
 }
 
-func (pt PinType) String() string {
-	switch pt {
-	case Memory:
-		return "EEPROM address"
-	case Binary:
-		return "GPIO pin"
-	case Analog:
-		return "Ana pin"
-	default:
-		return "Unknown pintype"
+func (pt PinType) String() (str string) {
+	if str, ok := pinTypeMsgMap[pt]; ok {
+		return str
 	}
+	return "Unknown pintype"
 }
 
 func (pns PinNumbers) String() (toString string) {
+	var sb strings.Builder
 	for pn := range pns {
-		toString = fmt.Sprintf("%s%d, ", toString, pn)
+		sb.WriteString(fmt.Sprintf("%d, ", pn))
 	}
-	toString = fmt.Sprintf("%s\n", toString)
-	return
+	sb.WriteString("\n")
+	return sb.String()
 }

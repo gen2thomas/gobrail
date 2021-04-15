@@ -77,7 +77,7 @@ func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.RailDeviceRecipe) (
 	case devicerecipe.Turnout:
 		runDev = di.createTurnout(deviceRecipe)
 	default:
-		return fmt.Errorf("Unknown type '%d'", deviceRecipe.Type)
+		return fmt.Errorf("Unknown type '%s'", deviceRecipe.Type)
 	}
 	if inDev != nil {
 		di.inputDevices[railDeviceKey] = inDev

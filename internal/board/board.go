@@ -78,7 +78,7 @@ func (b *Board) GetPinNumbers() (pinNumbers boardpin.PinNumbers) {
 func (b *Board) GetPinNumbersOfType(pinTypes ...boardpin.PinType) (pinNumbers boardpin.PinNumbers) {
 	pinNumbers = make(boardpin.PinNumbers)
 	for pinNumber, boardPin := range b.pins {
-		if boardpin.ContainsPinType(pinTypes, boardPin.PinType) {
+		if boardPin.PinTypeIsOneOf(pinTypes) {
 			pinNumbers[pinNumber] = struct{}{}
 		}
 	}
