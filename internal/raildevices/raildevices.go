@@ -10,12 +10,12 @@ type Timing struct {
 	Stopping time.Duration
 }
 
-func limitTiming(timing Timing, maxTime time.Duration) Timing {
-	if timing.Starting > maxTime {
-		timing.Starting = maxTime
+// Limit is used to shrink start and stop time to the given maximum
+func (t *Timing) Limit(maxTime time.Duration) {
+	if t.Starting > maxTime {
+		t.Starting = maxTime
 	}
-	if timing.Stopping > maxTime {
-		timing.Stopping = maxTime
+	if t.Stopping > maxTime {
+		t.Stopping = maxTime
 	}
-	return timing
 }

@@ -18,7 +18,7 @@ type pintypeTest struct {
 type pinNrTest struct {
 	name     string
 	numbers  PinNumbers
-	expected string
+	expected []string
 }
 
 var allpinTypes = []PinType{
@@ -73,13 +73,15 @@ func TestPinNumbersToString(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	var pinNrTests = []pinNrTest{
-		{name: "One number",
+		{
+			name:     "One number",
 			numbers:  PinNumbers{uint8(1): struct{}{}},
-			expected: "1, \n",
+			expected: []string{"1"},
 		},
-		{name: "Two numbers",
+		{
+			name:     "Two numbers",
 			numbers:  PinNumbers{uint8(1): struct{}{}, uint8(3): struct{}{}},
-			expected: "1, 3, \n",
+			expected: []string{"1", "3"},
 		},
 	}
 	for _, pt := range pinNrTests {
@@ -87,7 +89,9 @@ func TestPinNumbersToString(t *testing.T) {
 			// act
 			str := pt.numbers.String()
 			// assert
-			assert.Equal(pt.expected, str)
+			for _, estr := range pt.expected {
+				assert.Contains(str, estr)
+			}
 		})
 
 	}

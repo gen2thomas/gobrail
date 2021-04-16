@@ -152,7 +152,9 @@ func (di *RailDeviceAPI) createTwoLightSignal(deviceRecipe devicerecipe.RailDevi
 func (di *RailDeviceAPI) createTurnout(deviceRecipe devicerecipe.RailDeviceRecipe) (rd *runableDevice) {
 	outputBranch, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
 	outputMain, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSec)
-	co := raildevices.NewCommonOutput(deviceRecipe.Name, getTiming(deviceRecipe))
+	timing := getTiming(deviceRecipe)
+	timing.Limit(time.Duration(1 * time.Second))
+	co := raildevices.NewCommonOutput(deviceRecipe.Name, timing)
 	turnout := raildevices.NewTurnout(co, outputBranch, outputMain)
 	rd = newRunableDevice(turnout)
 	return
