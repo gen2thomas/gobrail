@@ -22,6 +22,17 @@ func TestCommonOutputNew(t *testing.T) {
 	assert.Equal(true, stateChanged)
 }
 
+func TestCommonOutputRailDeviceName(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	// act
+	co := NewCommonOutput("lamp dev", Timing{})
+	// assert
+	require.NotNil(co)
+	assert.Equal("lamp dev", co.RailDeviceName())
+}
+
 func TestCommonOutputIsOnSetStateStateChanged(t *testing.T) {
 	// arrange
 	assert := assert.New(t)

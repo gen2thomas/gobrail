@@ -1,7 +1,7 @@
 package raildevices
 
 // A lamp is a rail device used for
-// simple lamps, neon-light simulation, blinking lamps
+// simple lamps, blinking lamps with attached i2c chip for blinking output
 
 import (
 	"github.com/gen2thomas/gobrail/internal/boardpin"
@@ -22,7 +22,7 @@ func NewLamp(co *CommonOutputDevice, output *boardpin.Output) (ld *LampDevice) {
 	return
 }
 
-// SwitchOn will try to switch on the StdLamp
+// SwitchOn will try to switch on the lamp
 func (l *LampDevice) SwitchOn() (err error) {
 	if err = l.IsDefective(); err != nil {
 		return
@@ -35,7 +35,7 @@ func (l *LampDevice) SwitchOn() (err error) {
 	return
 }
 
-// SwitchOff will switch off the StdLamp
+// SwitchOff will switch off the lamp
 func (l *LampDevice) SwitchOff() (err error) {
 	l.TimingForStop()
 	if err = l.output.WriteValue(0); err != nil {
@@ -45,7 +45,7 @@ func (l *LampDevice) SwitchOff() (err error) {
 	return
 }
 
-// MakeDefective causes the StdLamp in an simulated defective state
+// MakeDefective causes the lamp in an simulated defective state
 func (l *LampDevice) MakeDefective() (err error) {
 	return l.MakeDefectiveCommon(l.SwitchOff)
 }

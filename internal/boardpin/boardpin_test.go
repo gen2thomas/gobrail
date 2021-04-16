@@ -93,6 +93,5 @@ func TestPinNumbersToString(t *testing.T) {
 				assert.Contains(str, estr)
 			}
 		})
-
 	}
 }
