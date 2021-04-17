@@ -14,6 +14,12 @@ type deviceMock struct {
 	name string
 }
 
+type rwTest struct {
+	pType  boardpin.PinType
+	fails  bool
+	expVal uint8
+}
+
 func TestGobotDevices(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
@@ -101,11 +107,89 @@ func TestGetBoardPinNotThereGetsError(t *testing.T) {
 	assert.Nil(pin)
 }
 
-func (d *deviceMock) Name() string                                                      { return d.name }
-func (d *deviceMock) SetName(s string)                                                  { d.name = s }
-func (d *deviceMock) Start() (err error)                                                { return }
-func (d *deviceMock) Halt() (err error)                                                 { return }
-func (d *deviceMock) Connection() gobot.Connection                                      { return nil }
-func (d *deviceMock) WriteGPIO(pin uint8, val uint8) (err error)                        { return }
-func (d *deviceMock) ReadGPIO(pin uint8) (val uint8, err error)                         { return }
-func (d *deviceMock) Command(string) (command func(map[string]interface{}) interface{}) { return }
+func TestWriteValue(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	// note: analog is not implemented yet, therfore fails
+	var wTests = []rwTest{
+		{pType: boardpin.Binary, fails: false, expVal: uint8(1)},
+		{pType: boardpin.BinaryR, fails: true, expVal: uint8(1)},
+		{pType: boardpin.BinaryW, fails: false, expVal: uint8(0)},
+		{pType: boardpin.NBinary, fails: false, expVal: uint8(0)},
+		{pType: boardpin.NBinaryR, fails: true, expVal: uint8(0)},
+		{pType: boardpin.NBinaryW, fails: false, expVal: uint8(0)},
+		{pType: boardpin.Memory, fails: false, expVal: uint8(1)},
+		{pType: boardpin.MemoryR, fails: true, expVal: uint8(1)},
+		{pType: boardpin.MemoryW, fails: false, expVal: uint8(0)},
+		{pType: boardpin.Analog, fails: true, expVal: uint8(0)},
+		{pType: boardpin.AnalogR, fails: true, expVal: uint8(0)},
+		{pType: boardpin.AnalogW, fails: true, expVal: uint8(0)},
+	}
+	for _, wt := range wTests {
+		name := "for " + boardpin.PinTypeMsgMap[wt.pType]
+		t.Run(name, func(t *testing.T) {
+			// arrange
+			cID := "chipNR"
+			pNr := uint8(3)
+			d := &deviceMock{name: "dev1"}
+			b := &Board{}
+			b.chips = map[string]*chip{cID: {driver: d}}
+			b.pins = PinsMap{pNr: {ChipID: cID, PinType: wt.pType}}
+			// act
+			err := b.WriteValue(pNr, wt.expVal)
+			// assert
+			assert.Equal(wt.fails, err != nil)
+		})
+	}
+}
+
+func TestReadValue(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	// note: analog is not implemented yet, therfore fails
+	var rTests = []rwTest{
+		{pType: boardpin.Binary, fails: false, expVal: uint8(1)},
+		{pType: boardpin.BinaryR, fails: false, expVal: uint8(1)},
+		{pType: boardpin.BinaryW, fails: true, expVal: uint8(0)},
+		{pType: boardpin.NBinary, fails: false, expVal: uint8(0)},
+		{pType: boardpin.NBinaryR, fails: false, expVal: uint8(0)},
+		{pType: boardpin.NBinaryW, fails: true, expVal: uint8(0)},
+		{pType: boardpin.Memory, fails: false, expVal: uint8(1)},
+		{pType: boardpin.MemoryR, fails: false, expVal: uint8(1)},
+		{pType: boardpin.MemoryW, fails: true, expVal: uint8(0)},
+		{pType: boardpin.Analog, fails: true, expVal: uint8(0)},
+		{pType: boardpin.AnalogR, fails: true, expVal: uint8(0)},
+		{pType: boardpin.AnalogW, fails: true, expVal: uint8(0)},
+	}
+	for _, rt := range rTests {
+		name := "for " + boardpin.PinTypeMsgMap[rt.pType]
+		t.Run(name, func(t *testing.T) {
+			// arrange
+			cID := "chipNR"
+			pNr := uint8(3)
+			d := &deviceMock{name: "dev1"}
+			b := &Board{}
+			b.chips = map[string]*chip{cID: {driver: d}}
+			b.pins = PinsMap{pNr: {ChipID: cID, PinType: rt.pType}}
+			// act
+			val, err := b.ReadValue(pNr)
+			// assert
+			assert.Equal(rt.fails, err != nil)
+			assert.Equal(rt.expVal, val)
+		})
+	}
+}
+
+func (d *deviceMock) Name() string                               { return d.name }
+func (d *deviceMock) SetName(s string)                           { d.name = s }
+func (d *deviceMock) Start() (err error)                         { return }
+func (d *deviceMock) Halt() (err error)                          { return }
+func (d *deviceMock) Connection() gobot.Connection               { return nil }
+func (d *deviceMock) WriteGPIO(pin uint8, val uint8) (err error) { return }
+func (d *deviceMock) ReadGPIO(pin uint8) (val uint8, err error)  { return }
+func (d *deviceMock) Command(string) (command func(map[string]interface{}) interface{}) {
+	command = func(map[string]interface{}) interface{} {
+		return map[string]interface{}{"err": nil, "val": uint8(1)}
+	}
+	return
+}

@@ -39,7 +39,8 @@ const (
 	MemoryW
 )
 
-var pinTypeMsgMap = map[PinType]string{
+// PinTypeMsgMap translate pin type to a small text
+var PinTypeMsgMap = map[PinType]string{
 	Binary:   "Binary (GPIO pin)",
 	BinaryR:  "BinaryR (GPIO pin readonly)",
 	BinaryW:  "BinaryW (GPIO pin writeonly)",
@@ -94,7 +95,7 @@ func (p Pin) PinTypeIsOneOf(pinTypes []PinType) bool {
 }
 
 func (pt PinType) String() (str string) {
-	if str, ok := pinTypeMsgMap[pt]; ok {
+	if str, ok := PinTypeMsgMap[pt]; ok {
 		return str
 	}
 	return "Unknown pintype"
