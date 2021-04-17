@@ -1,6 +1,7 @@
 package raildevices
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,6 +46,44 @@ func TestTwoLightsSignalSwitchOn(t *testing.T) {
 	assert.Equal(true, tls.IsOn())
 }
 
+func TestTwoLightsSignalSwitchOnWhenStopErrorGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	co := NewCommonOutput("tls dev", Timing{})
+	expErr := errors.New("an error")
+	wmPass := WriteMock{}
+	wmStop := WriteMock{simError: expErr}
+	outputPass := NewOutputMock(&wmPass)
+	outputStop := NewOutputMock(&wmStop)
+	tls := NewTwoLightsSignal(co, outputPass, outputStop)
+	// act
+	err := tls.SwitchOn()
+	// assert
+	require.NotNil(err)
+	assert.Equal(expErr, err)
+	assert.Equal(false, tls.IsOn())
+}
+
+func TestTwoLightsSignalSwitchOnWhenPassErrorGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	co := NewCommonOutput("tls dev", Timing{})
+	expErr := errors.New("an error")
+	wmPass := WriteMock{simError: expErr}
+	wmStop := WriteMock{}
+	outputPass := NewOutputMock(&wmPass)
+	outputStop := NewOutputMock(&wmStop)
+	tls := NewTwoLightsSignal(co, outputPass, outputStop)
+	// act
+	err := tls.SwitchOn()
+	// assert
+	require.NotNil(err)
+	assert.Equal(expErr, err)
+	assert.Equal(false, tls.IsOn())
+}
+
 func TestTwoLightsSignalSwitchOff(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
@@ -63,5 +102,43 @@ func TestTwoLightsSignalSwitchOff(t *testing.T) {
 	assert.Equal(1, wmPass.callCounter)
 	assert.Equal(uint8(1), wmStop.values[0])
 	assert.Equal(uint8(0), wmPass.values[0])
+	assert.Equal(false, tls.IsOn())
+}
+
+func TestTwoLightsSignalSwitchOffWhenPassErrorGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	co := NewCommonOutput("tls dev", Timing{})
+	expErr := errors.New("an error")
+	wmPass := WriteMock{simError: expErr}
+	wmStop := WriteMock{}
+	outputPass := NewOutputMock(&wmPass)
+	outputStop := NewOutputMock(&wmStop)
+	tls := NewTwoLightsSignal(co, outputPass, outputStop)
+	// act
+	err := tls.SwitchOff()
+	// assert
+	require.NotNil(err)
+	assert.Equal(expErr, err)
+	assert.Equal(false, tls.IsOn())
+}
+
+func TestTwoLightsSignalSwitchOffWhenStopErrorGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	co := NewCommonOutput("tls dev", Timing{})
+	expErr := errors.New("an error")
+	wmPass := WriteMock{}
+	wmStop := WriteMock{simError: expErr}
+	outputPass := NewOutputMock(&wmPass)
+	outputStop := NewOutputMock(&wmStop)
+	tls := NewTwoLightsSignal(co, outputPass, outputStop)
+	// act
+	err := tls.SwitchOff()
+	// assert
+	require.NotNil(err)
+	assert.Equal(expErr, err)
 	assert.Equal(false, tls.IsOn())
 }
