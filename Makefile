@@ -8,7 +8,7 @@ run:
 	go run $(mainfile)
 
 build: 
-	go build -v $(excluding_vendor) -o output/gobrail
+	go build -o ./output/gobrail $(mainfile)
 
 # Run tests on all non-vendor directories
 test:

@@ -3,4 +3,4 @@ coverage.out
 coverage.html
 
 # build artifacts
-output/*
+output*
