@@ -14,7 +14,7 @@ import (
 
 const defaultTick = 100 * time.Millisecond
 const defaultPlan = "./plans/plan.json"
-const defaultAdaptor = "Digispark"
+const defaultAdaptor = "Raspi"
 
 type config struct {
 	planFile    string

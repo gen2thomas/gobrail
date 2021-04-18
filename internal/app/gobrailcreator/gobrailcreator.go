@@ -11,9 +11,6 @@ import (
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/i2c"
-	"gobot.io/x/gobot/platforms/digispark"
-	"gobot.io/x/gobot/platforms/raspi"
-	"gobot.io/x/gobot/platforms/tinkerboard"
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/devicerecipe"
@@ -157,18 +154,4 @@ func ParseAdaptorType(adaptorString string) (a AdaptorType, err error) {
 
 func (a AdaptorType) String() string {
 	return adaptorTypeToStringMap[a]
-}
-
-func createAdaptor(adaptorType AdaptorType) (adaptor i2cAdaptor, err error) {
-	switch adaptorType {
-	case digisparkType:
-		adaptor = digispark.NewAdaptor()
-	case raspiType:
-		adaptor = raspi.NewAdaptor()
-	case tinkerboardType:
-		adaptor = tinkerboard.NewAdaptor()
-	default:
-		err = fmt.Errorf("Unknown type '%d'", adaptorType)
-	}
-	return
 }

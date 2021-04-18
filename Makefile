@@ -1,4 +1,4 @@
-.PHONY: run build test style
+.PHONY: run build buildraspi test style
 
 excluding_vendor := $(shell go list ./... | grep -v /vendor/)
 mainfile := cmd/main_daemon.go
@@ -9,6 +9,9 @@ run:
 
 build: 
 	go build -o ./output/gobrail $(mainfile)
+
+buildraspi:
+	env GOOS=linux GOARCH=arm GOARM=5 go build -o ./output/gobrail_raspi $(mainfile)
 
 # Run tests on all non-vendor directories
 test:
