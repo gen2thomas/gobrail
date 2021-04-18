@@ -1,18 +1,58 @@
 @startuml
-cloud "UI" {
-  [CLI or Hardware switch with additional software]
+cloud "Config UI" {
+  [text editor]
+  [CLI or WebUI]
 }
 
-package "rails" {
-  [rails devices]
+database "storage"  {
+  frame "json recipe" {
+    [plans, boards, devices]
+  }
+}
+
+cloud "Control UI" {
+  [hardware switch or WebUI]
+  [reconfig client]
+}
+
+package "main" {
+  [daemon]
+}
+
+package "gobrailcreator" {
+  [plan management]
+}
+
+package "boardrecipe" {
+  [read & verify\nboard recipe]
+}
+
+package "devicerecipe" {
+  [read & verify\ndevice & plan recipes]
+  [write plan recipe]
+}
+
+package "raildevicesapi" {
+  [devices management]
+  [rail run]
+}
+
+package "raildevices" {
+  [input/output devices]
 }
 
 package "boardsapi" {
-  [boards managment]
+  [boards management]
 }
 
 package "board" {
   [board driver]
+}
+
+note bottom of "board driver" : a virtual board will support\ninput simulation (control with WebUI)\nand output simulation (show with WebUI)
+
+package "boardpin" {
+  [IO pin]
 }
 
 package "gobot" {
@@ -20,9 +60,34 @@ package "gobot" {
   [platforms]
 }
 
-[CLI or Hardware switch with additional software] --> [rails devices]
-[rails devices] --> [boards managment]
-[boards managment] --> [board driver]
+
+cloud "Output device" {
+  [hardware device or simulation (WebUI)]
+}
+
+[text editor] --> [plans, boards, devices]
+[CLI or WebUI] --> [write plan recipe]
+[CLI or WebUI] --> [read & verify\ndevice & plan recipes]
+[CLI or WebUI] --> [read & verify\nboard recipe]
+[write plan recipe] --> [plans, boards, devices]
+[read & verify\nboard recipe] --> [plans, boards, devices]
+[read & verify\ndevice & plan recipes] --> [plans, boards, devices]
+[reconfig client] --> [daemon]
+[daemon] --> [rail run]
+[daemon] --> [plan management]
+[plan management] --> [read & verify\nboard recipe]
+[plan management] --> [read & verify\ndevice & plan recipes]
+[plan management] --> [devices management]
+[plan management] --> [boards management]
+[devices management] --> [input/output devices]
+[boards management] --> [board driver]
+[input/output devices] --> [IO pin]
+[board driver] --> [IO pin]
 [board driver] --> [platforms]
 [board driver] --> [drivers]
+[rail run] --> [input/output devices]
+[IO pin] --> [drivers]
+[drivers] -right-> [platforms]
+[IO pin] --> [hardware device or simulation (WebUI)]
+[IO pin] --> [hardware switch or WebUI]
 @enduml

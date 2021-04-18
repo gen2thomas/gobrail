@@ -6,11 +6,7 @@ package main
 
 import (
 	"fmt"
-	"time"
-
-	"gobot.io/x/gobot"
-	"gobot.io/x/gobot/platforms/digispark"
-
+	
 	"github.com/gen2thomas/gobrail/internal/app/gobrailcreator"
 )
 
@@ -19,24 +15,6 @@ import (
 
 func main() {
 
-	adaptor := digispark.NewAdaptor()
-	rail, _ := gobrailcreator.Create(adaptor, "./test/data/plan1.json", "./test/data/device_button4.json", "./test/data/device_togglebutton5.json")
-	fmt.Printf("\n------ Now running ------\n")
-
-	work := func() {
-		gobot.Every(50*time.Millisecond, func() {
-			rail.Run()
-		})
-	}
-
-	robot := gobot.NewRobot("play with button and lamp",
-		[]gobot.Connection{adaptor},
-		gobrailcreator.GobotDevices(),
-		work,
-	)
-
-	err := robot.Start()
-	if err != nil {
-		fmt.Println(err)
-	}
+	adatype, _ := gobrailcreator.ParseAdaptorType("digispark")
+	gobrailcreator.Create(false, "dummy rob name",adatype , "./test/data/plan1.json", "./test/data/device_button4.json", "./test/data/device_togglebutton5.json")
 }

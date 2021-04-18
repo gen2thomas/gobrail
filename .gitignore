@@ -1,3 +1,6 @@
 # code coverage artifacts
 coverage.out
 coverage.html
+
+# build artifacts
+output/*

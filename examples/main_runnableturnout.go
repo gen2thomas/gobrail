@@ -13,7 +13,7 @@ import (
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
-		"github.com/gen2thomas/gobrail/internal/raildevicesapi"
+	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
 )
 
 // A toggle button is used to change the state of the railroad switch.

@@ -1,11 +1,14 @@
-.PHONY: run test style
+.PHONY: run build test style
 
 excluding_vendor := $(shell go list ./... | grep -v /vendor/)
+mainfile := cmd/main_daemon.go
 
 # Run latest working level
 run:
-	#go run cmd/main_devicerecipe.go
-	go run examples/main_creator.go
+	go run $(mainfile)
+
+build: 
+	go build -v $(excluding_vendor) -o output/gobrail
 
 # Run tests on all non-vendor directories
 test:
