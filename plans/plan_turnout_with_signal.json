@@ -1,0 +1,34 @@
+{
+  "DeviceRecipes": [
+    {
+      "Name": "Rot grün Signal",
+      "Type": "TwoLightsSignal",
+      "BoardID": "IO_Mem_PCA9501",
+      "BoardPinNrPrim": 0,
+      "BoardPinNrSec": 2,
+      "Connect": "Weiche 1"
+    },
+    {
+      "Name": "Weiche 1",
+      "Type": "Turnout",
+      "BoardID": "IO_Mem_PCA9501",
+      "BoardPinNrPrim": 1,
+      "BoardPinNrSec": 3,
+      "StartingDelay": "0.1s",
+      "StoppingDelay": "0.1s",
+      "Connect": "Taste 1"
+    },
+    {
+      "Name": "Taste 1",
+      "Type": "Button",
+      "BoardID": "IO_Mem_PCA9501",
+      "BoardPinNrPrim": 4
+    },
+    {
+      "Name": "Taste 2",
+      "Type": "ToggleButton",
+      "BoardID": "IO_Mem_PCA9501",
+      "BoardPinNrPrim": 5
+    }
+  ]
+}

@@ -100,11 +100,13 @@ func run(ctx context.Context, c *config) (err error) {
 	if err = reinit(c); err != nil {
 		return
 	}
+	// https://forum.golangbridge.org/t/runtime-siftdowntimer-consuming-60-of-the-cpu/3773
+	ticker := time.NewTicker(c.tick)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case <-time.Tick(c.tick):
+		case <-ticker.C:
 			rail.Run()
 		}
 	}
