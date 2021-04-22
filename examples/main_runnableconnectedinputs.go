@@ -28,7 +28,7 @@ const boardID = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardsapi.BoardRecipe{
 	Name:        boardID,
 	ChipDevAddr: 0x04,
-	BoardType:   boardsapi.Typ2,
+	BoardType:   boardrecipe.Typ2,
 }
 
 var boardAPI *boardsapi.BoardsAPI

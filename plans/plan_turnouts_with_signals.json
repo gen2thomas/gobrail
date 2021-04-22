@@ -1,0 +1,64 @@
+{
+  "BoardRecipes":[
+    {
+      "Name": "B1_PCA9501",
+      "Type": "Typ2",
+      "ChipDevAddr": 4
+    },
+    {
+      "Name": "B2_PCA9501",
+      "Type": "Typ2",
+      "ChipDevAddr": 5
+    }
+  ],
+  "DeviceRecipes": [
+    {
+      "Name": "B1 Rot grün Signal",
+      "Type": "TwoLightsSignal",
+      "BoardID": "B1_PCA9501",
+      "BoardPinNrPrim": 0,
+      "BoardPinNrSec": 2,
+      "Connect": "B1 Weiche 1"
+    },
+    {
+      "Name": "B1 Weiche 1",
+      "Type": "Turnout",
+      "BoardID": "B1_PCA9501",
+      "BoardPinNrPrim": 1,
+      "BoardPinNrSec": 3,
+      "StartingDelay": "0.1s",
+      "StoppingDelay": "0.1s",
+      "Connect": "B1 Taste 1"
+    },
+    {
+      "Name": "B1 Taste 1",
+      "Type": "Button",
+      "BoardID": "B1_PCA9501",
+      "BoardPinNrPrim": 4
+    },
+    {
+      "Name": "B2 Rot grün Signal",
+      "Type": "TwoLightsSignal",
+      "BoardID": "B2_PCA9501",
+      "BoardPinNrPrim": 0,
+      "BoardPinNrSec": 2,
+      "Connect": "B2 Weiche 1"
+    },
+    {
+      "Name": "B2 Weiche 1",
+      "Type": "Turnout",
+      "BoardID": "B2_PCA9501",
+      "BoardPinNrPrim": 1,
+      "BoardPinNrSec": 3,
+      "StartingDelay": "0.1s",
+      "StoppingDelay": "0.1s",
+      "Connect": "B1 Taste 2"
+    },
+    {
+      "Name": "B1 Taste 2",
+      "Type": "ToggleButton",
+      "BoardID": "B1_PCA9501",
+      "BoardPinNrPrim": 5
+    }
+  ]
+}

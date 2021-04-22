@@ -1,4 +1,11 @@
 {
+  "BoardRecipes":[
+    {
+      "Name": "IO_Mem_PCA9501",
+      "Type": "Typ2",
+      "ChipDevAddr": 4
+    }
+  ],
   "DeviceRecipes": [
     {
       "Name": "Rot grün Signal",

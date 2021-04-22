@@ -13,27 +13,13 @@ import (
 	"gobot.io/x/gobot/drivers/i2c"
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
-	"github.com/gen2thomas/gobrail/internal/devicerecipe"
 	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
+	"github.com/gen2thomas/gobrail/internal/railplan"
 )
-
-// BoardsConfigAPIer is an interface for interact with a boards API
-type BoardsConfigAPIer interface {
-	GobotDevices() []gobot.Device
-	AddBoard(boardRecipe boardsapi.BoardRecipe) (err error)
-	RemoveBoard(boardID string)
-}
-
-// RailDevicesAPIer is an interface to interact with rail devices
-type RailDevicesAPIer interface {
-	AddDevice(devicerecipe.RailDeviceRecipe) (err error)
-	ConnectNow() (err error)
-	Run()
-}
 
 // RailRunner is an interface to poll the rail
 type RailRunner interface {
-	Run()
+	Run() (err error)
 }
 
 type i2cAdaptor interface {
@@ -51,23 +37,21 @@ const (
 	unknownType
 )
 
+// RecipeFiles contains additional files to add to menu card
+type RecipeFiles struct {
+	boards  []string
+	devices []string
+}
+
 var adaptorTypeToStringMap = map[AdaptorType]string{digisparkType: "digispark", raspiType: "raspi", tinkerboardType: "tinkerboard", unknownType: "typUnknown"}
 var adaptorStringToTypeMap = map[string]AdaptorType{"digispark": digisparkType, "raspi": raspiType, "tinkerboard": tinkerboardType, "unknown": unknownType}
-
-const boardID = "IO_Mem_PCA9501"
-
-var boardRecipePca9501 = boardsapi.BoardRecipe{
-	Name:        boardID,
-	ChipDevAddr: 0x04,
-	BoardType:   boardsapi.Typ2,
-}
 
 var lastGobot *gobot.Robot
 
 // Create will create a static device connection for run
 // before creating, the old gobot robot will be stopped
 // after creating the devices, a new gobot robot will be created and started
-func Create(daemonMode bool, name string, adaptorType AdaptorType, planFile string, deviceFiles ...string) (runner RailRunner, err error) {
+func Create(daemonMode bool, name string, adaptorType AdaptorType, planFile string, recipeFiles RecipeFiles) (runner RailRunner, err error) {
 	if err = Stop(); err != nil {
 		return
 	}
@@ -80,27 +64,47 @@ func Create(daemonMode bool, name string, adaptorType AdaptorType, planFile stri
 	fmt.Printf("\n------ Init APIs ------\n")
 	boardsAPI := boardsapi.NewBoardsAPI(adaptor)
 	deviceAPI := raildevicesapi.NewRailDevicesAPI(boardsAPI)
-	fmt.Printf("\n------ Init Boards ------\n")
-	boardsAPI.AddBoard(boardRecipePca9501)
 	fmt.Printf("\n------ Read Plan (%s) ------\n", planFile)
-	var deviceRecipes []devicerecipe.RailDeviceRecipe
-	if deviceRecipes, err = devicerecipe.ReadPlan(planFile); err != nil {
+	var plan railplan.RailPlan
+	if plan, err = railplan.ReadMenuCard(planFile); err != nil {
 		return
 	}
-	fmt.Printf("\n------ Read and add some device recipes ------\n")
-	for _, deviceFile := range deviceFiles {
-		var deviceRecipe devicerecipe.RailDeviceRecipe
-		if deviceRecipe, err = devicerecipe.ReadDevice(deviceFile); err != nil {
+	if len(recipeFiles.boards) > 0 {
+		fmt.Printf("\n------ Read and add some board recipes ------\n")
+		for _, boardFile := range recipeFiles.boards {
+			if err = plan.AddBoardRecipe(boardFile); err != nil {
+				return
+			}
+		}
+	}
+	if len(recipeFiles.devices) > 0 {
+		fmt.Printf("\n------ Read and add some device recipes ------\n")
+		for _, deviceFile := range recipeFiles.devices {
+			if err = plan.AddDeviceRecipe(deviceFile); err != nil {
+				return
+			}
+		}
+	}
+	fmt.Printf("\n------ Init boards from recipe list ------\n")
+	for _, boardRecipe := range plan.BoardRecipes {
+		if err = boardsAPI.AddBoard(boardRecipe); err != nil {
 			return
 		}
-		deviceRecipes = append(deviceRecipes, deviceRecipe)
 	}
-	fmt.Printf("\n------ Add devices from recipe list ------\n")
-	for _, deviceRecipe := range deviceRecipes {
-		deviceAPI.AddDevice(deviceRecipe)
+	fmt.Printf("\n------ Init devices from recipe list ------\n")
+	for _, deviceRecipe := range plan.DeviceRecipes {
+		if err = deviceAPI.AddDevice(deviceRecipe); err != nil {
+			return
+		}
 	}
 	fmt.Printf("\n------ Map inputs to outputs ------\n")
-	deviceAPI.ConnectNow()
+	if err = deviceAPI.ConnectNow(); err != nil {
+		return
+	}
+
+	fmt.Printf("\n------ Debugging ------\n")
+	boardsAPI.ShowAllConfigs()
+	boardsAPI.ShowAllUsedInputs()
 
 	if daemonMode {
 		// cyclic call of "Run()" is done by daemon program
@@ -112,8 +116,10 @@ func Create(daemonMode bool, name string, adaptorType AdaptorType, planFile stri
 		lastGobot.AutoRun = false
 	} else {
 		work := func() {
-			gobot.Every(50*time.Millisecond, func() {
-				deviceAPI.Run()
+			gobot.Every(10*time.Millisecond, func() {
+				if err := deviceAPI.Run(); err != nil {
+					fmt.Println(err)
+				}
 			})
 		}
 

@@ -58,7 +58,7 @@ func NewRailDevicesAPI(boardsIOAPI BoardsIOAPIer) *RailDeviceAPI {
 }
 
 // AddDevice creates a device from recipe and add it to the list
-func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.RailDeviceRecipe) (err error) {
+func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.Ingredients) (err error) {
 	railDeviceKey := getKey(deviceRecipe.Name)
 	if _, ok := di.devices[railDeviceKey]; ok {
 		return fmt.Errorf("Rail device '%s' (key: %s) already in use", deviceRecipe.Name, railDeviceKey)
@@ -67,15 +67,25 @@ func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.RailDeviceRecipe) (
 	var runDev *runableDevice
 	switch devicerecipe.TypeMap[deviceRecipe.Type] {
 	case devicerecipe.Button:
-		inDev = di.createButton(deviceRecipe)
+		if inDev, err = di.createButton(deviceRecipe); err != nil {
+			return
+		}
 	case devicerecipe.ToggleButton:
-		inDev = di.createToggleButton(deviceRecipe)
+		if inDev, err = di.createToggleButton(deviceRecipe); err != nil {
+			return
+		}
 	case devicerecipe.Lamp:
-		runDev = di.createLamp(deviceRecipe)
+		if runDev, err = di.createLamp(deviceRecipe); err != nil {
+			return
+		}
 	case devicerecipe.TwoLightsSignal:
-		runDev = di.createTwoLightSignal(deviceRecipe)
+		if runDev, err = di.createTwoLightSignal(deviceRecipe); err != nil {
+			return
+		}
 	case devicerecipe.Turnout:
-		runDev = di.createTurnout(deviceRecipe)
+		if runDev, err = di.createTurnout(deviceRecipe); err != nil {
+			return
+		}
 	default:
 		return fmt.Errorf("Unknown type '%s'", deviceRecipe.Type)
 	}
@@ -114,44 +124,68 @@ func (di *RailDeviceAPI) ConnectNow() (err error) {
 }
 
 // Run calls the run functions of all runnable devices
-func (di *RailDeviceAPI) Run() {
+func (di *RailDeviceAPI) Run() (err error) {
 	for _, runableDevice := range di.runableDevices {
-		runableDevice.Run()
+		if err = runableDevice.Run(); err != nil {
+			return err
+		}
 	}
+	return
 }
 
-func (di *RailDeviceAPI) createButton(deviceRecipe devicerecipe.RailDeviceRecipe) (button Inputer) {
-	input, _ := di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
+func (di *RailDeviceAPI) createButton(deviceRecipe devicerecipe.Ingredients) (button Inputer, err error) {
+	var input *boardpin.Input
+	if input, err = di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim); err != nil {
+		return
+	}
 	button = raildevices.NewButton(input, deviceRecipe.Name)
 	return
 }
 
-func (di *RailDeviceAPI) createToggleButton(deviceRecipe devicerecipe.RailDeviceRecipe) (toggleButton Inputer) {
-	input, _ := di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
+func (di *RailDeviceAPI) createToggleButton(deviceRecipe devicerecipe.Ingredients) (toggleButton Inputer, err error) {
+	var input *boardpin.Input
+	if input, err = di.boardsIOAPI.GetInputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim); err != nil {
+		return
+	}
 	toggleButton = raildevices.NewToggleButton(input, deviceRecipe.Name)
 	return
 }
 
-func (di *RailDeviceAPI) createLamp(deviceRecipe devicerecipe.RailDeviceRecipe) (rd *runableDevice) {
+func (di *RailDeviceAPI) createLamp(deviceRecipe devicerecipe.Ingredients) (rd *runableDevice, err error) {
+	var output *boardpin.Output
+	if output, err = di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim); err != nil {
+		return
+	}
 	co := raildevices.NewCommonOutput(deviceRecipe.Name, getTiming(deviceRecipe))
-	output, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
 	lamp := raildevices.NewLamp(co, output)
 	rd = newRunableDevice(lamp)
 	return
 }
 
-func (di *RailDeviceAPI) createTwoLightSignal(deviceRecipe devicerecipe.RailDeviceRecipe) (rd *runableDevice) {
-	outputPass, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
-	outputStop, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSec)
+func (di *RailDeviceAPI) createTwoLightSignal(deviceRecipe devicerecipe.Ingredients) (rd *runableDevice, err error) {
+	var outputPass *boardpin.Output
+	if outputPass, err = di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim); err != nil {
+		return
+	}
+	var outputStop *boardpin.Output
+	if outputStop, err = di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSec); err != nil {
+		return
+	}
 	co := raildevices.NewCommonOutput(deviceRecipe.Name, getTiming(deviceRecipe))
 	signal := raildevices.NewTwoLightsSignal(co, outputPass, outputStop)
 	rd = newRunableDevice(signal)
 	return
 }
 
-func (di *RailDeviceAPI) createTurnout(deviceRecipe devicerecipe.RailDeviceRecipe) (rd *runableDevice) {
-	outputBranch, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim)
-	outputMain, _ := di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSec)
+func (di *RailDeviceAPI) createTurnout(deviceRecipe devicerecipe.Ingredients) (rd *runableDevice, err error) {
+	var outputBranch *boardpin.Output
+	if outputBranch, err = di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrPrim); err != nil {
+		return
+	}
+	var outputMain *boardpin.Output
+	if outputMain, err = di.boardsIOAPI.GetOutputPin(deviceRecipe.BoardID, deviceRecipe.BoardPinNrSec); err != nil {
+		return
+	}
 	timing := getTiming(deviceRecipe)
 	timing.Limit(time.Duration(1 * time.Second))
 	co := raildevices.NewCommonOutput(deviceRecipe.Name, timing)
@@ -165,7 +199,7 @@ func getKey(railDeviceName string) (railDeviceKey string) {
 	return
 }
 
-func getTiming(r devicerecipe.RailDeviceRecipe) raildevices.Timing {
+func getTiming(r devicerecipe.Ingredients) raildevices.Timing {
 	start, _ := time.ParseDuration(r.StartingDelay)
 	stop, _ := time.ParseDuration(r.StartingDelay)
 	return raildevices.Timing{Starting: start, Stopping: stop}

@@ -32,6 +32,7 @@ import (
 
 	"github.com/gen2thomas/gobrail/internal/board"
 	"github.com/gen2thomas/gobrail/internal/boardpin"
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 // ConfigurationOperations is an interface for interact with configuration part
@@ -46,22 +47,6 @@ type Boarder interface {
 	GetPinNumbers() boardpin.PinNumbers
 	ReadValue(boardPinNr uint8) (uint8, error)
 	WriteValue(boardPinNr uint8, value uint8) (err error)
-}
-
-type boardType uint8
-
-const (
-	// Typ2 is the board with a single PCA9501 and 4 amplified outputs
-	Typ2 boardType = iota
-	// TypUnknown is fo fallback
-	TypUnknown
-)
-
-// BoardRecipe is a short description to create a new board
-type BoardRecipe struct {
-	Name        string
-	ChipDevAddr uint8
-	BoardType   boardType
 }
 
 // BoardsMap is the list of already created boards
@@ -84,17 +69,17 @@ func NewBoardsAPI(adaptor i2c.Connector) *BoardsAPI {
 }
 
 // AddBoard creates a new board using recipe and add to list
-func (bi *BoardsAPI) AddBoard(boardRecipe BoardRecipe) (err error) {
+func (bi *BoardsAPI) AddBoard(boardRecipe boardrecipe.Ingredients) (err error) {
 	if _, ok := bi.boards[boardRecipe.Name]; ok {
 		return fmt.Errorf("Board already there '%s'", boardRecipe.Name)
 	}
-	switch boardRecipe.BoardType {
-	case Typ2:
+	switch boardrecipe.TypeMap[boardRecipe.Type] {
+	case boardrecipe.Typ2:
 		newBoard := board.NewBoardTyp2(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
 		bi.boards[boardRecipe.Name] = newBoard
 		bi.usedPins[boardRecipe.Name] = make(boardpin.PinNumbers)
 	default:
-		return fmt.Errorf("Unknown type '%d'", boardRecipe.BoardType)
+		return fmt.Errorf("Unknown type '%s'", boardRecipe.Type)
 	}
 	return
 }
@@ -151,7 +136,11 @@ func (bi *BoardsAPI) GetInputPin(boardID string, boardPinNr uint8) (boardPin *bo
 			return bi.boards[boardID].ReadValue(boardPinNr)
 		},
 	}
-	bi.usedPins[boardID][boardPinNr] = struct{}{}
+	if bi.usedPins[boardID] != nil {
+		bi.usedPins[boardID][boardPinNr] = struct{}{}
+		return
+	}
+	err = fmt.Errorf("Used pins map not initialized for %s", boardID)
 	return
 }
 
@@ -187,16 +176,17 @@ func (bi *BoardsAPI) ShowAvailableBoards() {
 	fmt.Println(bi.boards)
 }
 
-// ShowConfig prints all information of a board
-func (bi *BoardsAPI) ShowConfig(boardID string) {
-	fmt.Printf("Board Id: %s\n", boardID)
-	bi.boards[boardID].ShowBoardConfig()
+// ShowAllUsedInputs list all used inputs of all boards
+func (bi *BoardsAPI) ShowAllUsedInputs() {
+	for id := range bi.boards {
+		fmt.Printf("Used Pins of board %s: %s\n", id, bi.GetUsedPins(id))
+	}
 }
 
-// ShowConfigs prints all information of all boards
-func (bi *BoardsAPI) ShowConfigs() {
+// ShowAllConfigs prints all information of all boards
+func (bi *BoardsAPI) ShowAllConfigs() {
 	for id := range bi.boards {
-		bi.ShowConfig(id)
+		bi.boards[id].ShowBoardConfig()
 	}
 }
 

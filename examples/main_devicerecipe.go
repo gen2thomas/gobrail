@@ -8,13 +8,14 @@ import (
 	"fmt"
 
 	"github.com/gen2thomas/gobrail/internal/devicerecipe"
+	"github.com/gen2thomas/gobrail/internal/railplan"
 )
 
 func main() {
 	var err error
-	var deviceRecipe devicerecipe.RailDeviceRecipe
+	var deviceRecipe devicerecipe.Ingredients
 	
-  deviceRecipes, err := devicerecipe.ReadPlan("./test/data/plan1.json")
+  deviceRecipes, err := railplan.Read("./test/data/plan1.json")
   if err != nil {
   	fmt.Println("an error:", err)
   }

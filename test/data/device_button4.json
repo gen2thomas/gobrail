@@ -1,6 +1,6 @@
 {
   "Name": "Taste 1",
   "Type": "Button",
-  "BoardID": "IO_Mem_PCA9501",
+  "BoardID": "IO_Mem_PCA9501_5",
   "BoardPinNrPrim": 4
 }

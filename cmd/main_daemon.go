@@ -12,9 +12,11 @@ import (
 	"github.com/gen2thomas/gobrail/internal/app/gobrailcreator"
 )
 
-const defaultTick = 100 * time.Millisecond
+const defaultTick = 10 * time.Millisecond
 const defaultPlan = "./plans/plan.json"
-const defaultAdaptor = "Raspi"
+
+//const defaultAdaptor = "Raspi"
+const defaultAdaptor = "Digispark"
 
 type config struct {
 	planFile    string
@@ -92,7 +94,7 @@ func (c *config) fill() (err error) {
 }
 
 func reinit(c *config) (err error) {
-	rail, err = gobrailcreator.Create(true, "Model railroad prototyp", c.adaptorType, c.planFile)
+	rail, err = gobrailcreator.Create(true, "Model railroad prototyp", c.adaptorType, c.planFile, gobrailcreator.RecipeFiles{})
 	return
 }
 
@@ -107,7 +109,9 @@ func run(ctx context.Context, c *config) (err error) {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			rail.Run()
+			if err = rail.Run(); err != nil {
+				return
+			}
 		}
 	}
 }

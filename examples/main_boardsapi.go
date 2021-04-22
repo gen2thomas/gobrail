@@ -13,6 +13,7 @@ import (
 
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/boardpin"
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 const boardName = "IO_Mem_PCA9501"
@@ -20,7 +21,7 @@ const boardName = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardsapi.BoardRecipe{
 	Name:        boardName,
 	ChipDevAddr: 0x04,
-	BoardType:   boardsapi.Typ2,
+	BoardType:   boardrecipe.Typ2,
 }
 
 var deviceArray [4]boardpin.Output

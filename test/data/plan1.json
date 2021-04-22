@@ -3,7 +3,7 @@
     {
       "Name": "Signal rot",
       "Type": "Lamp",
-      "BoardID": "IO_Mem_PCA9501",
+      "BoardID": "IO_Mem_PCA9501_4",
       "BoardPinNrPrim": 0,
       "StoppingDelay": "50ms",
       "Connect": "Taste 1"
@@ -11,14 +11,14 @@
     {
       "Name": "Signal grün",
       "Type": "Lamp",
-      "BoardID": "IO_Mem_PCA9501",
+      "BoardID": "IO_Mem_PCA9501_4",
       "BoardPinNrPrim": 3,
       "Connect": "Signal rot"
     },
     {
       "Name": "Rot grün Signal",
       "Type": "TwoLightsSignal",
-      "BoardID": "IO_Mem_PCA9501",
+      "BoardID": "IO_Mem_PCA9501_4",
       "BoardPinNrPrim": 2,
       "BoardPinNrSec": 1,
       "StartingDelay": "0.1ms",

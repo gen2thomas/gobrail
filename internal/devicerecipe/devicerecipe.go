@@ -1,7 +1,13 @@
 package devicerecipe
 
+// A devicerecipe is the description how to create an rail device
+
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -22,15 +28,15 @@ const (
 	TypUnknown
 )
 
-// TypeMap is the string representation to the underlying int type
+// TypeMap is the string representation to the underlying "railDeviceType"
 var TypeMap = map[string]railDeviceType{
 	"Button": Button, "ToggleButton": ToggleButton,
 	"Lamp": Lamp, "TwoLightsSignal": TwoLightsSignal, "Turnout": Turnout,
 	"TypUnknown": TypUnknown,
 }
 
-// RailDeviceRecipe describes a recipe to creat an new rail device
-type RailDeviceRecipe struct {
+// Ingredients describes a recipe to creat an new rail device
+type Ingredients struct {
 	Name           string `json:"Name"`
 	Type           string `json:"Type"`
 	BoardID        string `json:"BoardID"`
@@ -41,13 +47,38 @@ type RailDeviceRecipe struct {
 	Connect        string `json:"Connect"`
 }
 
-// RailPlan represents all recipes for rail devices
-type RailPlan struct {
-	DeviceRecipes []RailDeviceRecipe `json:"DeviceRecipes"`
+// TODO: json verification
+// TODO: wrapped errors
+// TODO: can write json single object description from a a plan-object
+
+// ReadIngredients is parsing json device description to a device recipe
+func ReadIngredients(deviceFile string) (recipe Ingredients, err error) {
+	deviceFile, err = filepath.Abs(deviceFile)
+	if err != nil {
+		return
+	}
+
+	var jsonFile *os.File
+	var byteValue []byte
+	jsonFile, err = os.Open(deviceFile)
+	if err == nil {
+		byteValue, err = ioutil.ReadAll(jsonFile)
+	}
+	if err == nil {
+		err = json.Unmarshal(byteValue, &recipe)
+	}
+	err2 := jsonFile.Close()
+	if err == nil {
+		recipe.FillEmptyDefaults()
+		err = err2
+		return
+	}
+	err = fmt.Errorf("%s for file %s %w", err.Error(), deviceFile, err2)
+	return
 }
 
 // Verify is checking the parsability of string values to the corresponding type
-func (r RailDeviceRecipe) Verify() (err error) {
+func (r Ingredients) Verify() (err error) {
 	// check for type string is known
 	if _, ok := TypeMap[r.Type]; !ok {
 		err = fmt.Errorf("The given type '%s' is unknown", r.Type)
@@ -64,7 +95,7 @@ func (r RailDeviceRecipe) Verify() (err error) {
 }
 
 // FillEmptyDefaults will correct some optional values after parsing
-func (r *RailDeviceRecipe) FillEmptyDefaults() {
+func (r *Ingredients) FillEmptyDefaults() {
 	if r.StartingDelay == "" {
 		r.StartingDelay = "0"
 	}
@@ -74,7 +105,7 @@ func (r *RailDeviceRecipe) FillEmptyDefaults() {
 	return
 }
 
-func (r RailDeviceRecipe) String() string {
+func (r Ingredients) String() string {
 	return fmt.Sprintf("Name: %s, Type: %s, BoardID: %s, BoardPinNr: %d, BoardPinNrSecond: %d, StartingDelay: %s, StoppingDelay: %s, Connect: %s",
 		r.Name, r.Type, r.BoardID, r.BoardPinNrPrim, r.BoardPinNrSec, r.StartingDelay, r.StoppingDelay, r.Connect)
 }

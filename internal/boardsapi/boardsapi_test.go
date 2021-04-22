@@ -11,6 +11,7 @@ import (
 	"gobot.io/x/gobot/drivers/i2c"
 
 	"github.com/gen2thomas/gobrail/internal/boardpin"
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 type adaptorMock struct {
@@ -24,16 +25,16 @@ type boardsMock struct {
 	memPins uint8
 }
 
-var boardRecipeTyp2 = BoardRecipe{
+var boardRecipeTyp2 = boardrecipe.Ingredients{
 	Name:        "TestRecipeTyp2",
 	ChipDevAddr: 0x07,
-	BoardType:   Typ2,
+	Type:        "Typ2",
 }
 
-var boardRecipeUnknown = BoardRecipe{
+var boardRecipeUnknown = boardrecipe.Ingredients{
 	Name:        "TestRecipeTypUnknown",
 	ChipDevAddr: 0x27,
-	BoardType:   TypUnknown,
+	Type:        "TypUnknown",
 }
 
 func TestBoardsAPINew(t *testing.T) {
