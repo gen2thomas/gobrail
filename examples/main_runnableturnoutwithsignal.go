@@ -14,6 +14,7 @@ import (
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 // A toggle button is used to change the state of the railroad switch.
@@ -24,10 +25,10 @@ import (
 
 const boardID = "IO_Mem_PCA9501"
 
-var boardRecipePca9501 = boardsapi.BoardRecipe{
+var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardID,
 	ChipDevAddr: 0x04,
-	BoardType:   boardrecipe.Typ2,
+	Type:   "Typ2",
 }
 
 var boardAPI *boardsapi.BoardsAPI

@@ -151,7 +151,6 @@ func (b *Board) ShowBoardConfig() {
 		fmt.Printf("\nBoard pin number: %d", pinNr)
 		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.PinType, boardPin.ChipPinNr, boardPin.ChipID)
 	}
-	fmt.Printf("\n------ Debug done ------\n")
 }
 
 func (b *Board) String() string {

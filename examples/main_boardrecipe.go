@@ -7,30 +7,31 @@ package main
 import (
 	"fmt"
 
-	"github.com/gen2thomas/gobrail/internal/devicerecipe"
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 func main() {
 	var err error
-	var recipe devicerecipe.Ingredients
+	var recipe boardrecipe.Ingredients
 	
-	recipe, err = devicerecipe.ReadIngredients("./test/data/device_button4.json")
+  recipe, err = boardrecipe.ReadIngredients("./test/data/board_typ2_0x04.json")
   if err != nil {
   	fmt.Println("an error:", err)
   	return
   }
-  fmt.Printf("Device - %s\n", recipe)
+  fmt.Printf("Recipe - %s\n", recipe)
+	
 	if err = recipe.Verify(); err != nil{
 		fmt.Printf("An error at '%s': %s\n", recipe.Name, err)
 	}
   
-  recipe, err = devicerecipe.ReadIngredients("./test/data/device_togglebutton5.json")
+  recipe, err = boardrecipe.ReadIngredients("./test/data/board_typ2_0x05.json")
   if err != nil {
   	fmt.Println("an error:", err)
   	return
   }
-  fmt.Printf("Device - %s\n", recipe)
-	if err = recipe.Verify(); err != nil{
+  fmt.Printf("Recipe - %s\n", recipe)
+  if err = recipe.Verify(); err != nil{
 		fmt.Printf("An error at '%s': %s\n", recipe.Name, err)
 	}
 }

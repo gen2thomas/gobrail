@@ -17,14 +17,14 @@ import (
 // TODO: wrapped errors
 // TODO: can write json plan from plan-object-list of creator
 
-// RailPlan represents all recipes for rail devices
-type RailPlan struct {
+// CookBook contains all recipes for boards and rail devices
+type CookBook struct {
 	DeviceRecipes []devicerecipe.Ingredients `json:"DeviceRecipes"`
 	BoardRecipes  []boardrecipe.Ingredients  `json:"BoardRecipes"`
 }
 
-// ReadMenuCard is parsing json plan to a list of device recipes
-func ReadMenuCard(planFile string) (railPlan RailPlan, err error) {
+// ReadCookBook is parsing json plan to a list of device recipes
+func ReadCookBook(planFile string) (railPlan CookBook, err error) {
 	planFile, err = filepath.Abs(planFile)
 	if err != nil {
 		return
@@ -50,7 +50,7 @@ func ReadMenuCard(planFile string) (railPlan RailPlan, err error) {
 }
 
 // AddBoardRecipe read and add a board to menu card
-func (p RailPlan) AddBoardRecipe(boardFile string) (err error) {
+func (p *CookBook) AddBoardRecipe(boardFile string) (err error) {
 	var recipe boardrecipe.Ingredients
 	if recipe, err = boardrecipe.ReadIngredients(boardFile); err != nil {
 		return
@@ -60,7 +60,7 @@ func (p RailPlan) AddBoardRecipe(boardFile string) (err error) {
 }
 
 // AddDeviceRecipe read and add a rail device to menu card
-func (p RailPlan) AddDeviceRecipe(deviceFile string) (err error) {
+func (p *CookBook) AddDeviceRecipe(deviceFile string) (err error) {
 	var recipe devicerecipe.Ingredients
 	if recipe, err = devicerecipe.ReadIngredients(deviceFile); err != nil {
 		return

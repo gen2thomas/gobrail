@@ -39,8 +39,8 @@ const (
 
 // RecipeFiles contains additional files to add to menu card
 type RecipeFiles struct {
-	boards  []string
-	devices []string
+	Boards  []string
+	Devices []string
 }
 
 var adaptorTypeToStringMap = map[AdaptorType]string{digisparkType: "digispark", raspiType: "raspi", tinkerboardType: "tinkerboard", unknownType: "typUnknown"}
@@ -56,53 +56,59 @@ func Create(daemonMode bool, name string, adaptorType AdaptorType, planFile stri
 		return
 	}
 
-	fmt.Printf("\n------ Init gobot adaptor (%s) ------\n", adaptorType)
+	fmt.Printf("\n======        Create Cook Book        =======")
+	var book railplan.CookBook
+	fmt.Printf("\n - Read Plan (%s)-\n", planFile)
+	if book, err = railplan.ReadCookBook(planFile); err != nil {
+		return
+	}
+	if len(recipeFiles.Boards) > 0 {
+		fmt.Printf("\n - Read and add %d board recipes\n", len(recipeFiles.Boards))
+		for _, boardFile := range recipeFiles.Boards {
+			fmt.Printf("\n -- Read board recipe (%s)\n", boardFile)
+			if err = book.AddBoardRecipe(boardFile); err != nil {
+				return
+			}
+		}
+	}
+	if len(recipeFiles.Devices) > 0 {
+		fmt.Printf("\n - Read and add %d device recipes\n", len(recipeFiles.Devices))
+		for _, deviceFile := range recipeFiles.Devices {
+			fmt.Printf("\n -- Read device recipe (%s)\n", deviceFile)
+			if err = book.AddDeviceRecipe(deviceFile); err != nil {
+				return
+			}
+		}
+	}
+	fmt.Printf("\n======     Create Delicious Meal     =======")
+	fmt.Printf("\n - Init gobot adaptor (%s)\n", adaptorType)
 	var adaptor i2cAdaptor
 	if adaptor, err = createAdaptor(adaptorType); err != nil {
 		return
 	}
-	fmt.Printf("\n------ Init APIs ------\n")
+	fmt.Printf("\n - Init APIs\n")
 	boardsAPI := boardsapi.NewBoardsAPI(adaptor)
 	deviceAPI := raildevicesapi.NewRailDevicesAPI(boardsAPI)
-	fmt.Printf("\n------ Read Plan (%s) ------\n", planFile)
-	var plan railplan.RailPlan
-	if plan, err = railplan.ReadMenuCard(planFile); err != nil {
-		return
-	}
-	if len(recipeFiles.boards) > 0 {
-		fmt.Printf("\n------ Read and add some board recipes ------\n")
-		for _, boardFile := range recipeFiles.boards {
-			if err = plan.AddBoardRecipe(boardFile); err != nil {
-				return
-			}
-		}
-	}
-	if len(recipeFiles.devices) > 0 {
-		fmt.Printf("\n------ Read and add some device recipes ------\n")
-		for _, deviceFile := range recipeFiles.devices {
-			if err = plan.AddDeviceRecipe(deviceFile); err != nil {
-				return
-			}
-		}
-	}
-	fmt.Printf("\n------ Init boards from recipe list ------\n")
-	for _, boardRecipe := range plan.BoardRecipes {
+	fmt.Printf("\n - Init boards from recipe list\n")
+	for _, boardRecipe := range book.BoardRecipes {
+		fmt.Printf("\n -- Init board (%s) -\n", boardRecipe.Name)
 		if err = boardsAPI.AddBoard(boardRecipe); err != nil {
 			return
 		}
 	}
-	fmt.Printf("\n------ Init devices from recipe list ------\n")
-	for _, deviceRecipe := range plan.DeviceRecipes {
+	fmt.Printf("\n - Init devices from recipe list\n")
+	for _, deviceRecipe := range book.DeviceRecipes {
+		fmt.Printf("\n -- Init device (%s) -\n", deviceRecipe.Name)
 		if err = deviceAPI.AddDevice(deviceRecipe); err != nil {
 			return
 		}
 	}
-	fmt.Printf("\n------ Map inputs to outputs ------\n")
+	fmt.Printf("\n - Map inputs to outputs\n")
 	if err = deviceAPI.ConnectNow(); err != nil {
 		return
 	}
 
-	fmt.Printf("\n------ Debugging ------\n")
+	fmt.Printf("\n====== Debugging ======\n")
 	boardsAPI.ShowAllConfigs()
 	boardsAPI.ShowAllUsedInputs()
 

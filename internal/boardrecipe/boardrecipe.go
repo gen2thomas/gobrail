@@ -65,3 +65,7 @@ func (r Ingredients) Verify() (err error) {
 	}
 	return
 }
+
+func (r Ingredients) String() string {
+	return fmt.Sprintf("Name: %s, Type: %s, Chip address: %d", r.Name, r.Type, r.ChipDevAddr)
+}

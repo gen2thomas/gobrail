@@ -158,7 +158,11 @@ func (bi *BoardsAPI) GetOutputPin(boardID string, boardPinNr uint8) (boardPin *b
 			return bi.boards[boardID].WriteValue(boardPinNr, value)
 		},
 	}
-	bi.usedPins[boardID][boardPinNr] = struct{}{}
+	if bi.usedPins[boardID] != nil {
+		bi.usedPins[boardID][boardPinNr] = struct{}{}
+		return
+	}
+	err = fmt.Errorf("Used pins map not initialized for %s", boardID)
 	return
 }
 

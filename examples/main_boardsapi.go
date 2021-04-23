@@ -18,10 +18,10 @@ import (
 
 const boardName = "IO_Mem_PCA9501"
 
-var boardRecipePca9501 = boardsapi.BoardRecipe{
+var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardName,
 	ChipDevAddr: 0x04,
-	BoardType:   boardrecipe.Typ2,
+	Type:   "Typ2",
 }
 
 var deviceArray [4]boardpin.Output
