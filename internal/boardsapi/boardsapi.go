@@ -19,7 +19,7 @@ package boardsapi
 // TODO:
 // - release pins (remove used mark)
 // - split generate recipes or read recipes from config
-// - store configuration in host eeprom or file (maybe not necessary when recipes is working)
+// - store configuration in host EEPROM or file (maybe not necessary when recipes is working)
 // - detect an device and add to boards (or generate recipe automatically)
 // - support for cascades
 //

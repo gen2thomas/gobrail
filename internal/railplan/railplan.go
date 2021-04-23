@@ -1,6 +1,6 @@
 package railplan
 
-// A railplan is the description how to create a modell railroad controller
+// A railplan is the description how to create a model railroad controller
 
 import (
 	"encoding/json"

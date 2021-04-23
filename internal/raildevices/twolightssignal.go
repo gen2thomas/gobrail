@@ -1,6 +1,6 @@
 package raildevices
 
-// A two light signal is a rail device used for sign "pass" or "stop" with lamps (commonly in colours "green"/"red")
+// A two light signal is a rail device used for sign "pass" or "stop" with lamps (commonly in colors "green"/"red")
 // Both lights can't be set at the same time.
 // The output pin is static set in difference to a semaphore signal, which is more like a "turnout" to control.
 
@@ -25,8 +25,8 @@ func NewTwoLightsSignal(co *CommonOutputDevice, outputPass *boardpin.Output, out
 	return
 }
 
-// SwitchOn will try to switch off the "stop" light (e.g. red colour)
-// and immediatally switch on the "can pass" light (e.g. green colour)
+// SwitchOn will try to switch off the "stop" light (e.g. red color)
+// and immediately switch on the "can pass" light (e.g. green color)
 func (s *TwoLightsSignalDevice) SwitchOn() (err error) {
 	s.TimingForStart()
 	if err = s.outputStop.WriteValue(0); err != nil {
@@ -39,8 +39,8 @@ func (s *TwoLightsSignalDevice) SwitchOn() (err error) {
 	return
 }
 
-// SwitchOff will try to switch off the "can pass" light (e.g. green colour)
-// and immediatally switch on the "stop" light (e.g. red colour)
+// SwitchOff will try to switch off the "can pass" light (e.g. green color)
+// and immediately switch on the "stop" light (e.g. red color)
 func (s *TwoLightsSignalDevice) SwitchOff() (err error) {
 	s.TimingForStop()
 	if err = s.outputPass.WriteValue(0); err != nil {

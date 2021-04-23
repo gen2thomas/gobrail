@@ -1,7 +1,7 @@
 package boardpin
 
 // A board pin describes one hardware IO connection of a board
-// The board pin number is mostely different from chip pin number
+// The board pin number is mostly different from chip pin number
 // A board can contain more than one chips
 
 import (
@@ -42,17 +42,17 @@ const (
 // PinTypeMsgMap translate pin type to a small text
 var PinTypeMsgMap = map[PinType]string{
 	Binary:   "Binary (GPIO pin)",
-	BinaryR:  "BinaryR (GPIO pin readonly)",
-	BinaryW:  "BinaryW (GPIO pin writeonly)",
+	BinaryR:  "BinaryR (GPIO pin read-only)",
+	BinaryW:  "BinaryW (GPIO pin write-only)",
 	NBinary:  "NBinary (negated GPIO pin)",
-	NBinaryR: "NBinaryR (negated GPIO pin readonly)",
-	NBinaryW: "NBinaryW (negated GPIO pin writeonly)",
+	NBinaryR: "NBinaryR (negated GPIO pin read-only)",
+	NBinaryW: "NBinaryW (negated GPIO pin write-only)",
 	Analog:   "Analog (Ana pin)",
-	AnalogR:  "AnalogR (Ana pin readonly)",
-	AnalogW:  "AnalogW (Ana pin writeonly)",
+	AnalogR:  "AnalogR (Ana pin read-only)",
+	AnalogW:  "AnalogW (Ana pin write-only)",
 	Memory:   "Memory (EEPROM address)",
-	MemoryR:  "MemoryR (EEPROM address readonly)",
-	MemoryW:  "MemoryW (EEPROM address writeonly)",
+	MemoryR:  "MemoryR (EEPROM address read-only)",
+	MemoryW:  "MemoryW (EEPROM address write-only)",
 }
 
 // Pin is the description of a board pin
@@ -98,7 +98,7 @@ func (pt PinType) String() (str string) {
 	if str, ok := PinTypeMsgMap[pt]; ok {
 		return str
 	}
-	return "Unknown pintype"
+	return "Unknown pin-type"
 }
 
 func (pns PinNumbers) String() (toString string) {

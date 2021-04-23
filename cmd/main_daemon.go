@@ -94,7 +94,7 @@ func (c *config) fill() (err error) {
 }
 
 func reinit(c *config) (err error) {
-	rail, err = gobrailcreator.Create(true, "Model railroad prototyp", c.adaptorType, c.planFile, gobrailcreator.RecipeFiles{})
+	rail, err = gobrailcreator.Create(true, "Model railroad prototype", c.adaptorType, c.planFile, gobrailcreator.RecipeFiles{})
 	return
 }
 

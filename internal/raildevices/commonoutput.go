@@ -73,12 +73,12 @@ func (o *CommonOutputDevice) RailDeviceName() string {
 	return o.railDeviceName
 }
 
-// TimingForStart execute sleep with starttime
+// TimingForStart execute sleep with start time
 func (o *CommonOutputDevice) TimingForStart() {
 	time.Sleep(o.timing.Starting)
 }
 
-// TimingForStop execute sleep with stoptime
+// TimingForStop execute sleep with stop-time
 func (o *CommonOutputDevice) TimingForStop() {
 	time.Sleep(o.timing.Stopping)
 }

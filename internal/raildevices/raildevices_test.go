@@ -66,13 +66,13 @@ func TestTimingLimit(t *testing.T) {
 			expT: Timing{Starting: time.Second, Stopping: time.Millisecond},
 		},
 		{
-			name: "start limitted",
+			name: "start limited",
 			inT:  Timing{Starting: time.Second, Stopping: time.Millisecond},
 			max:  time.Millisecond,
 			expT: Timing{Starting: time.Millisecond, Stopping: time.Millisecond},
 		},
 		{
-			name: "stop limitted",
+			name: "stop limited",
 			inT:  Timing{Starting: time.Millisecond, Stopping: time.Second},
 			max:  time.Duration(2 * time.Millisecond),
 			expT: Timing{Starting: time.Millisecond, Stopping: time.Duration(2 * time.Millisecond)},

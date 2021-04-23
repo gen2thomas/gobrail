@@ -110,7 +110,7 @@ func TestGetBoardPinNotThereGetsError(t *testing.T) {
 func TestWriteValue(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
-	// note: analog is not implemented yet, therfore fails
+	// note: analog is not implemented yet, therefore fails
 	var wTests = []rwTest{
 		{pType: boardpin.Binary, fails: false, expVal: uint8(1)},
 		{pType: boardpin.BinaryR, fails: true, expVal: uint8(1)},
@@ -146,7 +146,7 @@ func TestWriteValue(t *testing.T) {
 func TestReadValue(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
-	// note: analog is not implemented yet, therfore fails
+	// note: analog is not implemented yet, therefore fails
 	var rTests = []rwTest{
 		{pType: boardpin.Binary, fails: false, expVal: uint8(1)},
 		{pType: boardpin.BinaryR, fails: false, expVal: uint8(1)},

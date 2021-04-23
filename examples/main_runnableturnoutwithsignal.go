@@ -20,7 +20,7 @@ import (
 // Afterwards a red/green signal is switched without any delay.
 //
 // For a breadboard schematic refer to docs/images/PCA9501_Lamps_Buttons.png
-// Just substidude the magnets with LED's and a 150Ohm resistor.
+// Just substitute the magnets with LED's and a 150Ohm resistor.
 
 const boardID = "IO_Mem_PCA9501"
 
@@ -128,7 +128,7 @@ func (o *runableDevice) ConnectInverse(inputDevice raildevicesapi.Inputer) (err 
 	return nil
 }
 
-// RunCommon is called in a loop and will make action dependant on the input device
+// RunCommon is called in a loop and will make action dependent on the input device
 func (o *runableDevice) Run() (err error) {
 	if o.connectedInput == nil {
 		return fmt.Errorf("The '%s' can't run, please map to an input first", o.RailDeviceName())

@@ -20,7 +20,7 @@ import (
 // Second button is used as toggle button.
 //
 // For a breadboard schematic refer to docs/images/PCA9501_Lamps_Buttons.png
-// Just substidude the magnets with LED's and a 150Ohm resistor.
+// Just substitute the magnets with LED's and a 150Ohm resistor.
 
 const boardID = "IO_Mem_PCA9501"
 

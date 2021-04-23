@@ -14,11 +14,11 @@ package board
 // - Dummy address for EEPROM write is set to 0x00
 //
 // Functions:
-// + read/write eeprom at board
+// + read/write EEPROM at board
 // + read/write GPIO at board
 //
 // TODO:
-// - provide EEPROM as separat "chip" of this board
+// - provide EEPROM as separate "chip" of this board
 // - config with "from - to" range, especially for memory
 // - ensure no overlap of EEPROM for general use with "configmode"
 //
@@ -53,7 +53,7 @@ var boardPinsDefault = PinsMap{
 	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
 }
 
-// NewBoardTyp2 creates a new board of typ 2
+// NewBoardTyp2 creates a new board of type 2
 func NewBoardTyp2(adaptor i2c.Connector, address uint8, name string) *Board {
 	chips := map[string]*chip{chipID: {
 		address: address,

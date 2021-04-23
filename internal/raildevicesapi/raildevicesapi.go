@@ -37,7 +37,7 @@ type BoardsIOAPIer interface {
 	GetOutputPin(boardID string, boardPinNr uint8) (boardPin *boardpin.Output, err error)
 }
 
-// RailDeviceAPI describes the api
+// RailDeviceAPI describes the API
 type RailDeviceAPI struct {
 	boardsIOAPI    BoardsIOAPIer
 	devices        map[string]struct{}

@@ -37,7 +37,7 @@ func (o *runableDevice) ConnectInverse(inputDevice Inputer) (err error) {
 	return nil
 }
 
-// RunCommon is called in a loop and will make action dependant on the input device
+// RunCommon is called in a loop and will make action dependent on the input device
 func (o *runableDevice) Run() (err error) {
 	if o.connectedInput == nil {
 		return fmt.Errorf("The '%s' can't run, please map to an input first", o.RailDeviceName())

@@ -19,8 +19,8 @@ package board
 //
 // TODO:
 // - search for main address of board (configmode)
-// - use list of already used i2cdevice addresses to exclude from search (configmode)
-// - read/write eeprom at sufficient board or adaptor for "configmode"
+// - use list of already used i2c device addresses to exclude from search (configmode)
+// - read/write EEPROM at sufficient board or adaptor for "configmode"
 
 import (
 	"fmt"

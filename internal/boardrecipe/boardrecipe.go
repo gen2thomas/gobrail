@@ -15,7 +15,7 @@ type boardType uint8
 const (
 	// Typ2 is the board with a single PCA9501 and 4 amplified outputs
 	Typ2 boardType = iota
-	// TypUnknown is fo fallback
+	// TypUnknown is for fall back
 	TypUnknown
 )
 
@@ -57,7 +57,7 @@ func ReadIngredients(boardFile string) (recipe Ingredients, err error) {
 	return
 }
 
-// Verify is checking the parsability of string values to the corresponding type
+// Verify is checking that string values are parsable to the corresponding type
 func (r Ingredients) Verify() (err error) {
 	// check for type string is known
 	if _, ok := TypeMap[r.Type]; !ok {

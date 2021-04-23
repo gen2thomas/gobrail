@@ -24,7 +24,7 @@ const (
 	TwoLightsSignal
 	// Turnout is a output device with two outputs
 	Turnout
-	// TypUnknown is fo fallback
+	// TypUnknown is for fall-back
 	TypUnknown
 )
 
@@ -35,7 +35,7 @@ var TypeMap = map[string]railDeviceType{
 	"TypUnknown": TypUnknown,
 }
 
-// Ingredients describes a recipe to creat an new rail device
+// Ingredients describes a recipe to create an new rail device
 type Ingredients struct {
 	Name           string `json:"Name"`
 	Type           string `json:"Type"`
@@ -77,7 +77,7 @@ func ReadIngredients(deviceFile string) (recipe Ingredients, err error) {
 	return
 }
 
-// Verify is checking the parsability of string values to the corresponding type
+// Verify is checking that string values are parsable to the corresponding type
 func (r Ingredients) Verify() (err error) {
 	// check for type string is known
 	if _, ok := TypeMap[r.Type]; !ok {
