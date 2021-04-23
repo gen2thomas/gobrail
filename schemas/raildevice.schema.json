@@ -1,0 +1,41 @@
+{
+  "title": "Rail Device",
+  "description": "Rail device recipe for gobrail",
+  "type": "object",
+  "properties": {
+    "Name": {
+      "description": "The UID for a device",
+      "type": "string"
+    },
+    "Type": {
+      "description": "The type of the rail device",
+      "type": "string"
+    }
+    ,
+    "BoardID": {
+      "description": "The UID of the board where the rail device is connected",
+      "type": "string"
+    },
+    "BoardPinNrPrim": {
+      "description": "The primary pin where the rail device is connected to",
+      "type": "integer"
+    },
+    "BoardPinNrSec": {
+      "description": "The secondary pin where the rail device is connected to",
+      "type": "integer"
+    },
+    "StartingDelay": {
+      "description": "The delay used for start",
+      "type": "string"
+    },
+    "StoppingDelay": {
+      "description": "The delay used for stop",
+      "type": "string"
+    },
+    "Connect": {
+      "description": "The UID of another rail device, connected to this",
+      "type": "string"
+    }
+  },
+  "required": [ "Name", "Type", "BoardID", "BoardPinNrPrim" ]
+}

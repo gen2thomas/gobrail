@@ -1,0 +1,21 @@
+{
+  "title": "Plan",
+  "description": "Model railroad plan for gobrail",
+  "type": "object",
+  "properties": {
+    "BoardRecipes": {
+      "description": "A list of board recipes",
+      "type": "array",
+      "items": {
+        "$ref": "file://./schemas/board.schema.json"
+      }
+    },
+    "DeviceRecipes": {
+      "description": "A list of device recipes",
+      "type": "array",
+      "items": {
+        "$ref": "file://./schemas/raildevice.schema.json"
+      }
+    }
+  }
+}

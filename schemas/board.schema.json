@@ -1,0 +1,21 @@
+{
+  "title": "Board",
+  "description": "Board recipe for gobrail",
+  "type": "object",
+  "properties": {
+    "Name": {
+      "description": "The UID for the board",
+      "type": "string"
+    },
+    "Type": {
+      "description": "The type of the board",
+      "type": "string"
+    }
+    ,
+    "ChipDevAddr": {
+      "description": "The i2c device address of the chip on board",
+      "type": "integer"
+    }
+  },
+  "required": [ "Name", "Type", "ChipDevAddr" ]
+}

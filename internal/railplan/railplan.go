@@ -7,15 +7,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 	"github.com/gen2thomas/gobrail/internal/devicerecipe"
+	"github.com/gen2thomas/gobrail/internal/jsonrecipe"
 )
 
 // TODO: json verification
 // TODO: wrapped errors
 // TODO: can write json plan from plan-object-list of creator
+
+const schema = "./schemas/plan.schema.json"
 
 // CookBook contains all recipes for boards and rail devices
 type CookBook struct {
@@ -25,7 +27,7 @@ type CookBook struct {
 
 // ReadCookBook is parsing json plan to a list of device recipes
 func ReadCookBook(planFile string) (railPlan CookBook, err error) {
-	planFile, err = filepath.Abs(planFile)
+	planFile, err = jsonrecipe.PrepareAndValidate(schema, planFile)
 	if err != nil {
 		return
 	}
