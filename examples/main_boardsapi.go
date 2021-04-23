@@ -21,7 +21,7 @@ const boardName = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardName,
 	ChipDevAddr: 0x04,
-	Type:   "Typ2",
+	Type:   "Type2",
 }
 
 var deviceArray [4]boardpin.Output

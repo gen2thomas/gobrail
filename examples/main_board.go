@@ -39,7 +39,7 @@ var boardRecipePca9501 = boardRecipe{
 func main() {
 
 	adaptor := digispark.NewAdaptor()
-	board := board.NewBoardTyp2(adaptor, boardRecipePca9501.ChipDevAddr, boardRecipePca9501.Name)
+	board := board.NewBoardType2(adaptor, boardRecipePca9501.ChipDevAddr, boardRecipePca9501.Name)
 	pin := uint8(0)
 	value := uint8(0)
 	fmt.Printf("\n------ Config ------\n")

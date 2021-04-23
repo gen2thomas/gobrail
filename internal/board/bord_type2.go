@@ -1,6 +1,6 @@
 package board
 
-// Implementation for circuit board "Typ2" with one I2C chip PCA9501
+// Implementation for circuit board "Type2" with one I2C chip PCA9501
 //
 //      Author: g2t
 //  Created on: 01.06.2009 (in C++)
@@ -53,8 +53,8 @@ var boardPinsDefault = PinsMap{
 	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
 }
 
-// NewBoardTyp2 creates a new board of type 2
-func NewBoardTyp2(adaptor i2c.Connector, address uint8, name string) *Board {
+// NewBoardType2 creates a new board of type 2
+func NewBoardType2(adaptor i2c.Connector, address uint8, name string) *Board {
 	chips := map[string]*chip{chipID: {
 		address: address,
 		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),

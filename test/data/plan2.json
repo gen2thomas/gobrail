@@ -2,7 +2,7 @@
   "BoardRecipes":[
     {
       "Name": "IO_Mem_PCA9501_4",
-      "Type": "Typ2",
+      "Type": "Type2",
       "ChipDevAddr": 4
     }
   ],

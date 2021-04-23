@@ -81,34 +81,34 @@ func Create(daemonMode bool, name string, adaptorType AdaptorType, planFile stri
 		}
 	}
 	fmt.Printf("\n======     Create Delicious Meal     =======")
-	fmt.Printf("\n - Init gobot adaptor (%s)\n", adaptorType)
+	fmt.Printf("\n - Cook gobot adaptor (%s)\n", adaptorType)
 	var adaptor i2cAdaptor
 	if adaptor, err = createAdaptor(adaptorType); err != nil {
 		return
 	}
-	fmt.Printf("\n - Init APIs\n")
+	fmt.Printf("\n - Cook APIs\n")
 	boardsAPI := boardsapi.NewBoardsAPI(adaptor)
 	deviceAPI := raildevicesapi.NewRailDevicesAPI(boardsAPI)
-	fmt.Printf("\n - Init boards from recipe list\n")
+	fmt.Printf("\n - Cook boards from recipe list\n")
 	for _, boardRecipe := range book.BoardRecipes {
-		fmt.Printf("\n -- Init board (%s) -\n", boardRecipe.Name)
+		fmt.Printf("\n -- Brew board (%s) -\n", boardRecipe.Name)
 		if err = boardsAPI.AddBoard(boardRecipe); err != nil {
 			return
 		}
 	}
-	fmt.Printf("\n - Init devices from recipe list\n")
+	fmt.Printf("\n - Cook devices from recipe list\n")
 	for _, deviceRecipe := range book.DeviceRecipes {
-		fmt.Printf("\n -- Init device (%s) -\n", deviceRecipe.Name)
+		fmt.Printf("\n -- Brew device (%s) -\n", deviceRecipe.Name)
 		if err = deviceAPI.AddDevice(deviceRecipe); err != nil {
 			return
 		}
 	}
-	fmt.Printf("\n - Map inputs to outputs\n")
+	fmt.Printf("\n - Scramble inputs to outputs\n")
 	if err = deviceAPI.ConnectNow(); err != nil {
 		return
 	}
 
-	fmt.Printf("\n====== Debugging ======\n")
+	fmt.Printf("\n====== Presentation ======\n")
 	boardsAPI.ShowAllConfigs()
 	boardsAPI.ShowAllUsedInputs()
 

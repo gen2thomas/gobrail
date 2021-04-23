@@ -13,15 +13,15 @@ import (
 type boardType uint8
 
 const (
-	// Typ2 is the board with a single PCA9501 and 4 amplified outputs
-	Typ2 boardType = iota
+	// Type2 is the board with a single PCA9501 and 4 amplified outputs
+	Type2 boardType = iota
 	// TypUnknown is for fall back
 	TypUnknown
 )
 
 // TypeMap is the string representation to the underlying "boardType"
 var TypeMap = map[string]boardType{
-	"Typ2": Typ2, "TypUnknown": TypUnknown,
+	"Type2": Type2, "TypUnknown": TypUnknown,
 }
 
 // Ingredients is a short description to create a new board

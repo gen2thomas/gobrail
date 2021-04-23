@@ -2,12 +2,12 @@
   "BoardRecipes":[
     {
       "Name": "B1_PCA9501",
-      "Type": "Typ2",
+      "Type": "Type2",
       "ChipDevAddr": 4
     },
     {
       "Name": "B2_PCA9501",
-      "Type": "Typ2",
+      "Type": "Type2",
       "ChipDevAddr": 5
     }
   ],

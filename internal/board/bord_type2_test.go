@@ -14,15 +14,15 @@ type adaptorMock struct {
 	name string
 }
 
-func TestNewBoardTyp2(t *testing.T) {
+func TestNewBoardType2(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
 	require := require.New(t)
 	// act
-	boardt2 := NewBoardTyp2(new(adaptorMock), 0x05, "TestNewBoardTyp2")
+	boardt2 := NewBoardType2(new(adaptorMock), 0x05, "TestNewBoardType2")
 	// assert
 	require.NotNil(boardt2)
-	assert.Equal("TestNewBoardTyp2", boardt2.name)
+	assert.Equal("TestNewBoardType2", boardt2.name)
 }
 
 func TestWriteGPIOWithoutDriverFails(t *testing.T) {

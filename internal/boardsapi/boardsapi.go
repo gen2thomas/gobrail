@@ -74,8 +74,8 @@ func (bi *BoardsAPI) AddBoard(boardRecipe boardrecipe.Ingredients) (err error) {
 		return fmt.Errorf("Board already there '%s'", boardRecipe.Name)
 	}
 	switch boardrecipe.TypeMap[boardRecipe.Type] {
-	case boardrecipe.Typ2:
-		newBoard := board.NewBoardTyp2(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
+	case boardrecipe.Type2:
+		newBoard := board.NewBoardType2(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
 		bi.boards[boardRecipe.Name] = newBoard
 		bi.usedPins[boardRecipe.Name] = make(boardpin.PinNumbers)
 	default:

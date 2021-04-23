@@ -25,10 +25,10 @@ type boardsMock struct {
 	memPins uint8
 }
 
-var boardRecipeTyp2 = boardrecipe.Ingredients{
-	Name:        "TestRecipeTyp2",
+var boardRecipeType2 = boardrecipe.Ingredients{
+	Name:        "TestRecipeType2",
 	ChipDevAddr: 0x07,
-	Type:        "Typ2",
+	Type:        "Type2",
 }
 
 var boardRecipeUnknown = boardrecipe.Ingredients{
@@ -53,13 +53,13 @@ func TestBoardsAPIAddBoard(t *testing.T) {
 	require := require.New(t)
 	api := NewBoardsAPI(new(adaptorMock))
 	// act
-	err := api.AddBoard(boardRecipeTyp2)
+	err := api.AddBoard(boardRecipeType2)
 	// assert
 	require.Nil(err)
 	require.Equal(1, len(api.boards))
 	require.Equal(1, len(api.usedPins))
-	assert.Equal(0, len(api.usedPins[boardRecipeTyp2.Name]))
-	assert.Equal("Boards: 1\nBoard Id: TestRecipeTyp2, Name: TestRecipeTyp2, Chips: 1, Pins: 16\n\n", fmt.Sprintf("%s", api))
+	assert.Equal(0, len(api.usedPins[boardRecipeType2.Name]))
+	assert.Equal("Boards: 1\nBoard Id: TestRecipeType2, Name: TestRecipeType2, Chips: 1, Pins: 16\n\n", fmt.Sprintf("%s", api))
 }
 
 func TestBoardsAPIAddBoardReAddFails(t *testing.T) {
@@ -70,9 +70,9 @@ func TestBoardsAPIAddBoardReAddFails(t *testing.T) {
 		usedPins: make(map[string]boardpin.PinNumbers),
 		boards:   make(BoardsMap),
 	}
-	api.boards["TestRecipeTyp2"] = &boardsMock{}
+	api.boards["TestRecipeType2"] = &boardsMock{}
 	// act
-	err := api.AddBoard(boardRecipeTyp2)
+	err := api.AddBoard(boardRecipeType2)
 	// assert
 	require.NotNil(err)
 	assert.Contains(err.Error(), "Board already there")

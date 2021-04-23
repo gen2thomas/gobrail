@@ -8,12 +8,12 @@ The easiest way to install is to run `go get -u github.com/gen2thomas/gobrail`.
 
 ## Run without hardware & software modifications
 
-The hardware of "Typ 2" is needed together with digispark, than simply `make run`.
+The hardware of "Type 2" is needed together with digispark, than simply `make run`.
 Please have a look at docs/images/PCA9501_Lamps_Buttons.png for using with a breadboard.
 
 ## Run with another hardware
 
-For initial tests the "Typ2" board can cleaned from MOSFETS's.
+For initial tests the "Type 2" board can cleaned from MOSFETS's.
 Using another adaptor is also possible. Please see the gobot documentation.
 
 ## State of development
