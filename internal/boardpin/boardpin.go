@@ -106,6 +106,5 @@ func (pns PinNumbers) String() (toString string) {
 	for pn := range pns {
 		sb.WriteString(fmt.Sprintf("%d, ", pn))
 	}
-	sb.WriteString("\n")
 	return sb.String()
 }

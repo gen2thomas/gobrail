@@ -110,7 +110,10 @@ func Create(daemonMode bool, name string, adaptorType AdaptorType, planFile stri
 
 	fmt.Printf("\n====== Presentation ======\n")
 	boardsAPI.ShowAllConfigs()
+	fmt.Println()
 	boardsAPI.ShowAllUsedInputs()
+
+	fmt.Printf("\n====== Start train ride ======\n")
 
 	if daemonMode {
 		// cyclic call of "Run()" is done by daemon program

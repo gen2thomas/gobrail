@@ -182,8 +182,9 @@ func (bi *BoardsAPI) ShowAvailableBoards() {
 
 // ShowAllUsedInputs list all used inputs of all boards
 func (bi *BoardsAPI) ShowAllUsedInputs() {
+	fmt.Printf("------ Used Pins ------\n")
 	for id := range bi.boards {
-		fmt.Printf("Used Pins of board %s: %s\n", id, bi.GetUsedPins(id))
+		fmt.Printf("Board '%s': %s\n", id, bi.GetUsedPins(id))
 	}
 }
 

@@ -139,17 +139,14 @@ func (b *Board) ReadValue(boardPinNr uint8) (value uint8, err error) {
 
 // ShowBoardConfig prints all information of the board
 func (b *Board) ShowBoardConfig() {
-	fmt.Printf("\n------ Show Board (%s) ------", b)
-	fmt.Printf("\n------ Chips on board ------")
+	fmt.Printf("\n------ Show Board (%s) ------\n", b)
+	fmt.Printf("------ Chips on board ------\n")
 	for chipID, chip := range b.chips {
-		fmt.Printf("\nChip Id: %s", chipID)
-		fmt.Printf(", chip driver name: %s", chip.driver.Name())
-		fmt.Printf(", chip address: %d", chip.address)
+		fmt.Printf("Chip Id: %s, chip driver name: %s, chip address: %d\n", chipID, chip.driver.Name(), chip.address)
 	}
-	fmt.Printf("\n------ Pins on board ------")
+	fmt.Printf("------ Pins on board ------\n")
 	for pinNr, boardPin := range b.pins {
-		fmt.Printf("\nBoard pin number: %d", pinNr)
-		fmt.Printf(", chip %s: %d (chip Id %s)", boardPin.PinType, boardPin.ChipPinNr, boardPin.ChipID)
+		fmt.Printf("Board pin number: %d, chip %s: %d (chip Id %s)\n", pinNr, boardPin.PinType, boardPin.ChipPinNr, boardPin.ChipID)
 	}
 }
 
