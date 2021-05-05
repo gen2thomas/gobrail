@@ -1,0 +1,54 @@
+{
+    "BoardRecipes":[
+    {
+      "Name": "B63",
+      "Type": "Type2",
+      "ChipDevAddr": 63
+    }
+   ],
+  "DeviceRecipes": [
+    {
+      "Name": "Turnout1",
+      "Type": "Turnout",
+      "BoardID": "B63",
+      "BoardPinNrPrim": 0,
+      "BoardPinNrSec": 1,
+      "StartingDelay": "0.1s",
+      "StoppingDelay": "0.1s",
+    },
+    {
+      "Name": "S1gn",
+      "Type": "Button",
+      "BoardID": "B63",
+      "BoardPinNrPrim": 4
+    },
+    {
+      "Name": "S1rt",
+      "Type": "Button",
+      "BoardID": "B63",
+      "BoardPinNrPrim": 5
+    },
+    {
+      "Name": "Turnout2",
+      "Type": "Turnout",
+      "BoardID": "B63",
+      "BoardPinNrPrim": 2,
+      "BoardPinNrSec": 3,
+      "StartingDelay": "0.1s",
+      "StoppingDelay": "0.1s",
+      "Connect": "S1rt"
+    },
+    {
+      "Name": "S2gn",
+      "Type": "Button",
+      "BoardID": "B63",
+      "BoardPinNrPrim": 6
+    },
+    {
+      "Name": "S2rt",
+      "Type": "Button",
+      "BoardID": "B63",
+      "BoardPinNrPrim": 7
+    }
+  ]
+}
