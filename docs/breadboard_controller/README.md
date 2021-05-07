@@ -1,12 +1,20 @@
-## Motivation
-Using breadboards can avoid disadvantage of soldering prototype boards when using I2C chips (see comparison below).
+## Using breadboards to get in touch
+Playing around with breadboards is very nice. It reduces the need of soldering to a minimum or zero (when using pinout boards for terminals).
+To startup quickly there are some breadboard schematics in the documentation folders. So buy some breadboards and startup prototyping your model railroad.
+
+**Attention:** Protect your devices by removing the main power plug (18-20V=) during startup and before shutdown. Disregard may lead to destruction of your devices, especially your magnetic coils.
+
+#### Example "type2_2turnout_4optocouplers"
+This operates 2 turnouts with active feedback to controller using the inputs. Two boards are required, a basic "Type 2" board and an additional breadboard for wiring opto-couplers. The third board is just to show the basic internal wiring of a magnetic turnout drive. The plan show the principle, but make not much sense without an additional "Type 2" board for at least one key to switch the "Turnout1". "Turnout2" is connected to state of "Turnout1" by using the feedback "S1rt" and will follow the position of "Turnout1" automatically.
+>The LED's can be also used as signal (red/green).
+Address pins A0-A5 are "H" by internal pull-up resistors. Feel free to add wires from pins 1, 2, 3, 9, 11, 12 to GND for adjust the I2C address to your needs.
 
 ## Comparison I2C and proprietary hardware
 #### I2C
 Advantage
 * old and well known standard
-* with small improvements suitable for long range
-* wide range of chips (IO's, PWM's, sensors for temperature, humidity or compass etc.)
+* with small improvements suitable for long range and high speed (fast mode ... ultra fast mode)
+* large range of chips (IO's, PWM's, sensors for temperature, humidity or compass etc.)
 
 Disadvantages
 * software must be developed according to the used chip
@@ -45,14 +53,3 @@ This is especially an ecological point.
 * light barriers can be made from IR transmitters/receivers of remote controllers or using old fire detectors
 * excellent 4 wire cables for I2C are USB cables (please use only shielded cables) or network CAT cables
 * old USB or network connectors can be found on many old devices
-
-## Using breadboards to get in touch
-Playing around with breadboards is very nice. It reduces the need of soldering to a minimum or zero (when using pinout boards for terminals).
-To startup quickly there are some breadboard schematics in the documentation folders. So buy some breadboards and startup prototyping your model railroad.
-
-**Attention:** Protect your devices by removing the main power plug (18-20V=) during startup and before shutdown. Disregard may lead to destruction of your devices, especially your magnetic coils.
-
-#### Example "type2_2turnout_4optocouplers"
-This operates 2 turnouts with active feedback to controller using the inputs. Two boards are required, a basic "Type 2" board and an additional breadboard for wiring opto-couplers. The third board is just to show the basic internal wiring of a magnetic turnout drive. The plan show the principle, but make not much sense without an additional "Type 2" board for at least one key to switch the "Turnout1". "Turnout2" is connected to state of "Turnout1" by using the feedback "S1rt" and will follow the position of "Turnout1" automatically.
->The LED's can be also used as signal (red/green).
-Address pins A0-A5 are "H" by internal pull-up resistors. Feel free to add wires from pins 1, 2, 3, 9, 11, 12 to GND for adjust the I2C address to your needs.
