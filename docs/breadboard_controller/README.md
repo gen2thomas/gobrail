@@ -1,7 +1,7 @@
 ## Using breadboards to get in touch
 
 Playing around with breadboards is very nice. It reduces the need of soldering to a minimum or zero (when using pinout boards for terminals).
-To startup quickly there are some breadboard schematics in the documentation folders. So buy some breadboards and startup prototyping your model railroad. Some examples can be found in folder "docs/breadboard_controller".
+To startup quickly there are some breadboard schematics in the documentation folder "docs/breadboard_controller". So buy some breadboards and startup prototyping your model railroad.
 
 #### Notes for all example breadboards
 
@@ -9,7 +9,7 @@ The board named "Turnout-Simulation Board" is just to show the basic internal wi
 
 Address pins A0-A5 are "H" by internal pull-up resistors. Feel free to add wires from pins 1, 2, 3, 9, 11, 12 to GND for adjust the I2C address to your needs.
 
-**Attention:** Protect your devices by removing the main power plug (18-20V=) during startup and before shutdown. Disregard may lead to destruction of your devices, especially your magnetic coils.
+**Attention:** Protect your devices by removing the main power plug (18-20V=) during startup and before shutdown. Disregard may lead to destruction of your devices, especially your magnetic coils. Although this software is automatically tested and worked for me, there will be bugs in it for sure. Each software can harm your devices. Therefor have the main power off switch in range.
 
 ## Comparison I2C and proprietary hardware
 #### I2C
