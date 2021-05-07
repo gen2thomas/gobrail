@@ -1,0 +1,3 @@
+## Example "type2_2turnout_4optocouplers"
+This operates 2 turnouts with active feedback to controller using the inputs. Two boards are required, a basic "Type 2" board and an additional breadboard for wiring opto-couplers. The plan show the principle, but make not much sense without an additional "Type 2" board for at least one key to switch the "Turnout1". "Turnout2" is connected to state of "Turnout1" by using the feedback "S1rt". So, a simple test would be changing the position of "Turnout1" by hand and the "Turnout2" will follow the position of "Turnout1" automatically.
+>The LED's can be also used as signal (red/green).
