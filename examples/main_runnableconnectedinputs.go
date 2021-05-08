@@ -11,10 +11,10 @@ import (
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/platforms/digispark"
 
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
-	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 // Two buttons are used to switch on and off a lamp.
@@ -29,7 +29,7 @@ const boardID = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardID,
 	ChipDevAddr: 0x04,
-	Type:   "Type2",
+	Type:        "Type2",
 }
 
 var boardAPI *boardsapi.BoardsAPI
@@ -41,15 +41,15 @@ func main() {
 	// setup IO's
 	fmt.Printf("\n------ Init Inputs ------\n")
 	button := createButton("Taste 1", boardID, 4)
-	togButton := createToggleButton( "Taste 2", boardID, 5)
+	togButton := createToggleButton("Taste 2", boardID, 5)
 	fmt.Printf("\n------ Init Outputs ------\n")
 	lamp1 := createLamp("Strassenlampe 1", boardID, 0, raildevices.Timing{})
-	lamp2 := createLamp("Strassenlampe 2", boardID, 1, raildevices.Timing{Starting: 500*time.Millisecond})
+	lamp2 := createLamp("Strassenlampe 2", boardID, 1, raildevices.Timing{Starting: 500 * time.Millisecond})
 	lamp3 := createLamp("Strassenlampe 3", boardID, 2, raildevices.Timing{Starting: time.Second, Stopping: time.Second})
 	fmt.Printf("\n------ Connect inputs to outputs ------\n")
-	lamp1.Connect(button)
-	lamp2.Connect(togButton)
-	lamp3.ConnectInverse(lamp2) // lamp3 will be switched off after lamp2 is really on
+	lamp1.Connect(button, false)
+	lamp2.Connect(togButton, false)
+	lamp3.Connect(lamp2, true) // lamp3 will be switched off after lamp2 is really on
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
@@ -107,7 +107,7 @@ func newRunableDevice(outDev raildevicesapi.Runner) *runableDevice {
 }
 
 // Connect is connecting an input for use in Run()
-func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer) (err error) {
+func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer, inversed bool) (err error) {
 	if o.connectedInput != nil {
 		return fmt.Errorf("The '%s' is already connected to an input '%s'", o.RailDeviceName(), o.connectedInput.RailDeviceName())
 	}
@@ -115,13 +115,7 @@ func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer) (err error) 
 		return fmt.Errorf("Circular mapping blocked for '%s'", o.RailDeviceName())
 	}
 	o.connectedInput = inputDevice
-	return nil
-}
-
-// ConnectInverse is connecting an input for use in Run(), but with inversed action
-func (o *runableDevice) ConnectInverse(inputDevice raildevicesapi.Inputer) (err error) {
-	o.Connect(inputDevice)
-	o.inputInversion = true
+	o.inputInversion = iversed
 	return nil
 }
 
@@ -150,4 +144,3 @@ func (o *runableDevice) Run() (err error) {
 func (o *runableDevice) ReleaseInput() {
 	o.connectedInput = nil
 }
-

@@ -11,10 +11,10 @@ import (
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/platforms/digispark"
 
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
-	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 // A toggle button is used to change the state of the railroad switch.
@@ -28,7 +28,7 @@ const boardID = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardID,
 	ChipDevAddr: 0x04,
-	Type:   "Type2",
+	Type:        "Type2",
 }
 
 var boardAPI *boardsapi.BoardsAPI
@@ -45,9 +45,9 @@ func main() {
 	lampRed := createLamp("Signal rot", boardID, 1, raildevices.Timing{Stopping: 50 * time.Millisecond})
 	lampGreen := createLamp("Signal grün", boardID, 2, raildevices.Timing{Starting: 500 * time.Millisecond})
 	fmt.Printf("\n------ Connect inputs to outputs ------\n")
-	turnout.Connect(togButton)
-	lampRed.Connect(turnout)
-	lampGreen.ConnectInverse(lampRed)
+	turnout.Connect(togButton, false)
+	lampRed.Connect(turnout, false)
+	lampGreen.Connect(lampRed, true)
 	fmt.Printf("\n------ Now running ------\n")
 
 	work := func() {
@@ -108,7 +108,7 @@ func newRunableDevice(outDev raildevicesapi.Runner) *runableDevice {
 }
 
 // Connect is connecting an input for use in Run()
-func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer) (err error) {
+func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer, inversed bool) (err error) {
 	if o.connectedInput != nil {
 		return fmt.Errorf("The '%s' is already connected to an input '%s'", o.RailDeviceName(), o.connectedInput.RailDeviceName())
 	}
@@ -116,13 +116,7 @@ func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer) (err error) 
 		return fmt.Errorf("Circular mapping blocked for '%s'", o.RailDeviceName())
 	}
 	o.connectedInput = inputDevice
-	return nil
-}
-
-// ConnectInverse is connecting an input for use in Run(), but with inversed action
-func (o *runableDevice) ConnectInverse(inputDevice raildevicesapi.Inputer) (err error) {
-	o.Connect(inputDevice)
-	o.inputInversion = true
+	o.inputInversion = inversed
 	return nil
 }
 

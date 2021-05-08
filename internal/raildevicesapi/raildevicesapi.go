@@ -37,13 +37,18 @@ type BoardsIOAPIer interface {
 	GetOutputPin(boardID string, boardPinNr uint8) (boardPin *boardpin.Output, err error)
 }
 
+type connection struct {
+	name     string
+	inversed bool
+}
+
 // RailDeviceAPI describes the API
 type RailDeviceAPI struct {
 	boardsIOAPI    BoardsIOAPIer
 	devices        map[string]struct{}
 	runableDevices map[string]*runableDevice
 	inputDevices   map[string]Inputer
-	connections    map[string]string
+	connections    map[string]connection
 }
 
 // NewRailDevicesAPI creates a new instance of rail device API
@@ -53,7 +58,7 @@ func NewRailDevicesAPI(boardsIOAPI BoardsIOAPIer) *RailDeviceAPI {
 		boardsIOAPI:    boardsIOAPI,
 		runableDevices: make(map[string]*runableDevice),
 		inputDevices:   make(map[string]Inputer),
-		connections:    make(map[string]string),
+		connections:    make(map[string]connection),
 	}
 }
 
@@ -96,7 +101,7 @@ func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.Ingredients) (err e
 		di.runableDevices[railDeviceKey] = runDev
 	}
 	if deviceRecipe.Connect != "" {
-		di.connections[railDeviceKey] = getKey(deviceRecipe.Connect)
+		di.connections[railDeviceKey] = connection{name: getKey(deviceRecipe.Connect), inversed: false}
 	}
 	di.devices[railDeviceKey] = struct{}{}
 	return
@@ -105,19 +110,21 @@ func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.Ingredients) (err e
 // ConnectNow create all connections
 func (di *RailDeviceAPI) ConnectNow() (err error) {
 	for runningDevKey, runableDevice := range di.runableDevices {
-		var conKey string
+		var conn connection
 		var ok bool
-		if conKey, ok = di.connections[runningDevKey]; !ok {
+		if conn, ok = di.connections[runningDevKey]; !ok {
 			continue
 		}
 		var conDev Inputer
-		if conDev, ok = di.runableDevices[conKey]; !ok {
-			conDev = di.inputDevices[conKey]
+		if conDev, ok = di.runableDevices[conn.name]; !ok {
+			conDev = di.inputDevices[conn.name]
 		}
 		if conDev != nil {
-			runableDevice.Connect(conDev)
+			if err := runableDevice.Connect(conDev, conn.inversed); err != nil {
+				return err
+			}
 		} else {
-			return fmt.Errorf("Device with key '%s' to connect with '%s' not found", conKey, runableDevice.RailDeviceName())
+			return fmt.Errorf("Device with key '%s' to connect with '%s' not found", conn.name, runableDevice.RailDeviceName())
 		}
 	}
 	return

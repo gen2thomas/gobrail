@@ -11,10 +11,10 @@ import (
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/platforms/digispark"
 
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
 	"github.com/gen2thomas/gobrail/internal/raildevicesapi"
-	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 // A toggle button is used to change the state of the railroad switch.
@@ -28,7 +28,7 @@ const boardID = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardID,
 	ChipDevAddr: 0x04,
-	Type:   "Type2",
+	Type:        "Type2",
 }
 
 var boardAPI *boardsapi.BoardsAPI
@@ -51,10 +51,10 @@ func main() {
 
 	work := func() {
 		gobot.Every(50*time.Millisecond, func() {
-			if err := redgreensignal.Run(); err != nil{
+			if err := redgreensignal.Run(); err != nil {
 				fmt.Println(err)
 			}
-			if err := turnout.Run(); err != nil{
+			if err := turnout.Run(); err != nil {
 				fmt.Println(err)
 			}
 		})
@@ -119,13 +119,6 @@ func (o *runableDevice) Connect(inputDevice raildevicesapi.Inputer) (err error) 
 		return fmt.Errorf("Circular mapping blocked for '%s'", o.RailDeviceName())
 	}
 	o.connectedInput = inputDevice
-	return nil
-}
-
-// ConnectInverse is connecting an input for use in Run(), but with inversed action
-func (o *runableDevice) ConnectInverse(inputDevice raildevicesapi.Inputer) (err error) {
-	o.Connect(inputDevice)
-	o.inputInversion = true
 	return nil
 }
 

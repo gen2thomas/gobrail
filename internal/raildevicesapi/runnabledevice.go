@@ -19,7 +19,7 @@ func newRunableDevice(outDev Runner) *runableDevice {
 }
 
 // Connect is connecting an input for use in Run()
-func (o *runableDevice) Connect(inputDevice Inputer) (err error) {
+func (o *runableDevice) Connect(inputDevice Inputer, inputInversion bool) (err error) {
 	if o.connectedInput != nil {
 		return fmt.Errorf("The '%s' is already connected to an input '%s'", o.RailDeviceName(), o.connectedInput.RailDeviceName())
 	}
@@ -27,13 +27,7 @@ func (o *runableDevice) Connect(inputDevice Inputer) (err error) {
 		return fmt.Errorf("Circular mapping blocked for '%s'", o.RailDeviceName())
 	}
 	o.connectedInput = inputDevice
-	return nil
-}
-
-// ConnectInverse is connecting an input for use in Run(), but with inversed action
-func (o *runableDevice) ConnectInverse(inputDevice Inputer) (err error) {
-	o.Connect(inputDevice)
-	o.inputInversion = true
+	o.inputInversion = inputInversion
 	return nil
 }
 
