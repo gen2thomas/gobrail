@@ -13,8 +13,16 @@ import (
 
 type boardsIOAPIMock struct{}
 
-type inputerMock struct{}
-type runnerMock struct{ name string }
+type inputerMock struct {
+	simStateChangedErr bool
+	stateChanged       bool
+	isOn               bool
+}
+type runnerMock struct {
+	name      string
+	simOnErr  bool
+	simOffErr bool
+}
 
 func TestNewRailDevicesAPI(t *testing.T) {
 	// arrange
@@ -29,7 +37,7 @@ func TestNewRailDevicesAPI(t *testing.T) {
 	assert.NotNil(da.runableDevices)
 	assert.NotNil(da.inputDevices)
 	assert.NotNil(da.connections)
-	assert.Equal(da.boardsIOAPI, ba)
+	assert.Equal(ba, da.boardsIOAPI)
 }
 
 func TestAddDeviceExistGetsError(t *testing.T) {
@@ -113,6 +121,36 @@ func TestConnectNow(t *testing.T) {
 	require.Nil(err)
 	assert.Equal(da.inputDevices["inp_dev_key"], da.runableDevices["in_run_dev_key"].connectedInput)
 	assert.Equal(da.runableDevices["in_run_dev_key"], da.runableDevices["run_dev_key"].connectedInput)
+}
+
+func TestConnectNowWhenTargetNotFoundGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	da := RailDeviceAPI{}
+	da.inputDevices = make(map[string]Inputer)
+	da.runableDevices = map[string]*runableDevice{"run_dev_key": &runableDevice{Runner: runnerMock{name: "rdk"}}}
+	da.connections = map[string]connection{"run_dev_key": connection{name: "target_not_there"}}
+	// act
+	err := da.ConnectNow()
+	// assert
+	require.NotNil(err)
+	assert.Contains(err.Error(), "'rdk' not found")
+}
+
+func TestConnectNowWhenConnectGetsErrorReturnsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	da := RailDeviceAPI{}
+	da.inputDevices = make(map[string]Inputer)
+	da.runableDevices = map[string]*runableDevice{"run_dev_key": &runableDevice{Runner: runnerMock{name: "rdk"}}}
+	da.connections = map[string]connection{"run_dev_key": connection{name: "run_dev_key"}}
+	// act
+	err := da.ConnectNow()
+	// assert
+	require.NotNil(err)
+	assert.Contains(err.Error(), "Circular mapping blocked for 'rdk'")
 }
 
 func Test_createButton(t *testing.T) {
@@ -299,12 +337,28 @@ func (am boardsIOAPIMock) GetOutputPin(boardID string, boardPinNr uint8) (boardP
 	return
 }
 
-func (i inputerMock) RailDeviceName() string                                   { return "test_input" }
-func (i inputerMock) StateChanged(visitor string) (hasChanged bool, err error) { return }
-func (i inputerMock) IsOn() bool                                               { return false }
+func (i inputerMock) RailDeviceName() string { return "test_input" }
+func (i inputerMock) StateChanged(visitor string) (hasChanged bool, err error) {
+	hasChanged = i.stateChanged
+	if i.simStateChangedErr {
+		err = fmt.Errorf("state changed error")
+	}
+	return
+}
+func (i inputerMock) IsOn() bool { return i.isOn }
 
-func (r runnerMock) RailDeviceName() string                                   { return r.name }
-func (r runnerMock) SwitchOn() (err error)                                    { return }
-func (r runnerMock) SwitchOff() (err error)                                   { return }
+func (r runnerMock) RailDeviceName() string { return r.name }
+func (r runnerMock) SwitchOn() (err error) {
+	if r.simOnErr {
+		err = fmt.Errorf("on error")
+	}
+	return
+}
+func (r runnerMock) SwitchOff() (err error) {
+	if r.simOffErr {
+		err = fmt.Errorf("off error")
+	}
+	return
+}
 func (r runnerMock) StateChanged(visitor string) (hasChanged bool, err error) { return }
 func (r runnerMock) IsOn() bool                                               { return false }

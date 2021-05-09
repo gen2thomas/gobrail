@@ -119,12 +119,11 @@ func (di *RailDeviceAPI) ConnectNow() (err error) {
 		if conDev, ok = di.runableDevices[conn.name]; !ok {
 			conDev = di.inputDevices[conn.name]
 		}
-		if conDev != nil {
-			if err := runableDevice.Connect(conDev, conn.inversed); err != nil {
-				return err
-			}
-		} else {
+		if conDev == nil {
 			return fmt.Errorf("Device with key '%s' to connect with '%s' not found", conn.name, runableDevice.RailDeviceName())
+		}
+		if err = runableDevice.Connect(conDev, conn.inversed); err != nil {
+			return
 		}
 	}
 	return
