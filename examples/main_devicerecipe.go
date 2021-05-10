@@ -13,24 +13,18 @@ import (
 func main() {
 	var err error
 	var recipe devicerecipe.Ingredients
-	
+
 	recipe, err = devicerecipe.ReadIngredients("./test/data/device_button4.json")
-  if err != nil {
-  	fmt.Println("an error:", err)
-  	return
-  }
-  fmt.Printf("Device - %s\n", recipe)
-	if err = recipe.Verify(); err != nil{
-		fmt.Printf("An error at '%s': %s\n", recipe.Name, err)
+	if err != nil {
+		fmt.Println("an error:", err)
+		return
 	}
-  
-  recipe, err = devicerecipe.ReadIngredients("./test/data/device_togglebutton5.json")
-  if err != nil {
-  	fmt.Println("an error:", err)
-  	return
-  }
-  fmt.Printf("Device - %s\n", recipe)
-	if err = recipe.Verify(); err != nil{
-		fmt.Printf("An error at '%s': %s\n", recipe.Name, err)
+	fmt.Printf("Device - %s\n", recipe)
+
+	recipe, err = devicerecipe.ReadIngredients("./test/data/device_togglebutton5.json")
+	if err != nil {
+		fmt.Println("an error:", err)
+		return
 	}
+	fmt.Printf("Device - %s\n", recipe)
 }

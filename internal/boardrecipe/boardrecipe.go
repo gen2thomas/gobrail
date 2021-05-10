@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/gen2thomas/gobrail/internal/errwrap"
 	"github.com/gen2thomas/gobrail/internal/jsonrecipe"
 )
 
@@ -50,18 +51,18 @@ func ReadIngredients(boardFile string) (recipe Ingredients, err error) {
 	if err == nil {
 		err = json.Unmarshal(byteValue, &recipe)
 	}
-	if err2 := jsonFile.Close(); err2 != nil {
-		if err == nil {
-			err = err2
-			return
-		}
-		err = fmt.Errorf("%s for file %s %w", err.Error(), boardFile, err2)
+	err = errwrap.Wrap(err, jsonFile.Close())
+	if err == nil {
+		err = recipe.verify()
+	}
+	if err != nil {
+		err = fmt.Errorf("%s for file %s", err.Error(), boardFile)
 	}
 	return
 }
 
 // Verify is checking that string values are parsable to the corresponding type
-func (r Ingredients) Verify() (err error) {
+func (r Ingredients) verify() (err error) {
 	// check for type string is known
 	if _, ok := TypeMap[r.Type]; !ok {
 		err = fmt.Errorf("The given type '%s' is unknown", r.Type)

@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gen2thomas/gobrail/internal/errwrap"
 	"github.com/gen2thomas/gobrail/internal/jsonrecipe"
 )
 
@@ -50,8 +51,6 @@ type Ingredients struct {
 	Connect        string `json:"Connect"`
 }
 
-// TODO: json verification
-// TODO: wrapped errors
 // TODO: can write json single object description from a a plan-object
 
 // ReadIngredients is parsing json device description to a device recipe
@@ -70,18 +69,19 @@ func ReadIngredients(deviceFile string) (recipe Ingredients, err error) {
 	if err == nil {
 		err = json.Unmarshal(byteValue, &recipe)
 	}
-	err2 := jsonFile.Close()
+	err = errwrap.Wrap(err, jsonFile.Close())
 	if err == nil {
-		recipe.FillEmptyDefaults()
-		err = err2
-		return
+		recipe.fillEmptyDefaults()
+		err = recipe.verify()
 	}
-	err = fmt.Errorf("%s for file %s %w", err.Error(), deviceFile, err2)
+	if err != nil {
+		err = fmt.Errorf("%s for file %s", err.Error(), deviceFile)
+	}
 	return
 }
 
-// Verify is checking that string values are parsable to the corresponding type
-func (r Ingredients) Verify() (err error) {
+// verify is checking that string values are parsable to the corresponding type
+func (r Ingredients) verify() (err error) {
 	// check for type string is known
 	if _, ok := TypeMap[r.Type]; !ok {
 		err = fmt.Errorf("The given type '%s' is unknown", r.Type)
@@ -97,8 +97,8 @@ func (r Ingredients) Verify() (err error) {
 	return
 }
 
-// FillEmptyDefaults will correct some optional values after parsing
-func (r *Ingredients) FillEmptyDefaults() {
+// fillEmptyDefaults will correct some optional values after parsing
+func (r *Ingredients) fillEmptyDefaults() {
 	if r.StartingDelay == "" {
 		r.StartingDelay = "0"
 	}
