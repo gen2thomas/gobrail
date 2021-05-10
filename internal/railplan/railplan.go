@@ -10,11 +10,10 @@ import (
 
 	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 	"github.com/gen2thomas/gobrail/internal/devicerecipe"
+	"github.com/gen2thomas/gobrail/internal/errwrap"
 	"github.com/gen2thomas/gobrail/internal/jsonrecipe"
 )
 
-// TODO: json verification
-// TODO: wrapped errors
 // TODO: can write json plan from plan-object-list of creator
 
 const schema = "./schemas/plan.schema.json"
@@ -41,13 +40,11 @@ func ReadCookBook(planFile string) (railPlan CookBook, err error) {
 	if err == nil {
 		err = json.Unmarshal(byteValue, &railPlan)
 	}
-	if err2 := jsonFile.Close(); err2 != nil {
-		if err == nil {
-			err = err2
-			return
-		}
-		err = fmt.Errorf("%s for file %s %w", err.Error(), planFile, err2)
+	err = errwrap.Wrap(err, jsonFile.Close())
+	if err != nil {
+		err = fmt.Errorf("%s for file %s", err.Error(), planFile)
 	}
+
 	return
 }
 
