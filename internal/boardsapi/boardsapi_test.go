@@ -213,6 +213,22 @@ func TestGetInputPinWhenAlreadyUsedGetsError(t *testing.T) {
 	assert.Contains(err.Error(), "already used")
 }
 
+func TestGetInputPinWhenBoardNotInitializedGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	api := &BoardsAPI{
+		boards:   make(BoardsMap),
+		usedPins: make(map[string]boardpin.PinNumbers),
+	}
+	// act
+	pin, err := api.GetInputPin("NotInitializedTestBoard", 1)
+	// assert
+	require.NotNil(err)
+	assert.Nil(pin)
+	assert.Contains(err.Error(), "not initialized")
+}
+
 func TestGetOutputPin(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
@@ -248,6 +264,22 @@ func TestGetOutputPinWhenAlreadyUsedGetsError(t *testing.T) {
 	require.NotNil(err)
 	assert.Nil(pin)
 	assert.Contains(err.Error(), "already used")
+}
+
+func TestGetOutputPinWhenBoardNotInitializedGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	api := &BoardsAPI{
+		boards:   make(BoardsMap),
+		usedPins: make(map[string]boardpin.PinNumbers),
+	}
+	// act
+	pin, err := api.GetOutputPin("NotInitializedTestBoard", 1)
+	// assert
+	require.NotNil(err)
+	assert.Nil(pin)
+	assert.Contains(err.Error(), "not initialized")
 }
 
 func (a *adaptorMock) GetConnection(address int, bus int) (device i2c.Connection, err error) { return }

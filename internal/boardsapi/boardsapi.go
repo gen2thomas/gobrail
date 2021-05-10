@@ -140,6 +140,7 @@ func (bi *BoardsAPI) GetInputPin(boardID string, boardPinNr uint8) (boardPin *bo
 		bi.usedPins[boardID][boardPinNr] = struct{}{}
 		return
 	}
+	boardPin = nil
 	err = fmt.Errorf("Used pins map not initialized for %s", boardID)
 	return
 }
@@ -162,6 +163,7 @@ func (bi *BoardsAPI) GetOutputPin(boardID string, boardPinNr uint8) (boardPin *b
 		bi.usedPins[boardID][boardPinNr] = struct{}{}
 		return
 	}
+	boardPin = nil
 	err = fmt.Errorf("Used pins map not initialized for %s", boardID)
 	return
 }
