@@ -10,8 +10,7 @@
     "Type": {
       "description": "The type of the board",
       "type": "string"
-    }
-    ,
+    },
     "ChipDevAddr": {
       "description": "The i2c device address of the chip on board",
       "type": "integer"

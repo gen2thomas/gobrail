@@ -10,7 +10,7 @@ import (
 )
 
 const defaultTick = 10 * time.Millisecond
-const defaultPlan = "./plans/plan.json"
+const defaultPlan = "./test/data/plans/plan.json"
 
 // Config contains program parameters
 type Config struct {

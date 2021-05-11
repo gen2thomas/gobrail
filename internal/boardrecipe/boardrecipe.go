@@ -12,7 +12,8 @@ import (
 	"github.com/gen2thomas/gobrail/internal/jsonrecipe"
 )
 
-const schema = "./schemas/board.schema.json"
+// Schema is for json validation
+var Schema = "./schemas/board.schema.json"
 
 type boardType uint8
 
@@ -37,7 +38,7 @@ type Ingredients struct {
 
 // ReadIngredients is parsing json board description to a board recipe
 func ReadIngredients(boardFile string) (recipe Ingredients, err error) {
-	boardFile, err = jsonrecipe.PrepareAndValidate(schema, boardFile)
+	boardFile, err = jsonrecipe.PrepareAndValidate(Schema, boardFile)
 	if err != nil {
 		return
 	}

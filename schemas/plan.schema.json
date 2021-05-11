@@ -7,14 +7,14 @@
       "description": "A list of board recipes",
       "type": "array",
       "items": {
-        "$ref": "file://./schemas/board.schema.json"
+        "$ref": "board.schema.json"
       }
     },
     "DeviceRecipes": {
       "description": "A list of device recipes",
       "type": "array",
       "items": {
-        "$ref": "file://./schemas/raildevice.schema.json"
+        "$ref": "raildevice.schema.json"
       }
     }
   }

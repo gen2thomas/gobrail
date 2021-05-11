@@ -1,0 +1,10 @@
+{
+  "Name": "Turnout 1",
+  "Type": "Turnout",
+  "BoardID": "B1",
+  "BoardPinNrPrim": 6,
+  "BoardPinNrSec": 7,
+  "StartingDelay": "0.1s",
+  "StoppingDelay": "0.1s",
+  "Connect": "Button 1"
+},

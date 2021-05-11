@@ -13,7 +13,8 @@ import (
 	"github.com/gen2thomas/gobrail/internal/jsonrecipe"
 )
 
-const schema = "./schemas/raildevice.schema.json"
+// Schema is for json validation
+var Schema = "./schemas/raildevice.schema.json"
 
 type railDeviceType uint8
 
@@ -55,7 +56,7 @@ type Ingredients struct {
 
 // ReadIngredients is parsing json device description to a device recipe
 func ReadIngredients(deviceFile string) (recipe Ingredients, err error) {
-	deviceFile, err = jsonrecipe.PrepareAndValidate(schema, deviceFile)
+	deviceFile, err = jsonrecipe.PrepareAndValidate(Schema, deviceFile)
 	if err != nil {
 		return
 	}

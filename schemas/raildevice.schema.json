@@ -10,8 +10,7 @@
     "Type": {
       "description": "The type of the rail device",
       "type": "string"
-    }
-    ,
+    },
     "BoardID": {
       "description": "The UID of the board where the rail device is connected",
       "type": "string"

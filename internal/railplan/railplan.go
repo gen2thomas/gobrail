@@ -16,7 +16,7 @@ import (
 
 // TODO: can write json plan from plan-object-list of creator
 
-const schema = "./schemas/plan.schema.json"
+var schema = "./schemas/plan.schema.json"
 
 // CookBook contains all recipes for boards and rail devices
 type CookBook struct {

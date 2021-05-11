@@ -1,0 +1,28 @@
+{
+  "BoardRecipes":[
+    {
+      "Name": "B1",
+      "Type": "Type2",
+      "ChipDevAddr": 1
+    },
+    {
+      "Name": "B2",
+      "Type": "Type2",
+      "ChipDevAddr": 2
+    }
+  ],
+  "DeviceRecipes": [
+    {
+      "Name": "B1D1",
+      "Type": "Lamp",
+      "BoardID": "B1",
+      "BoardPinNrPrim": 3
+    },
+    {
+      "Name": "B2D1",
+      "Type": "Button",
+      "BoardID": "B2",
+      "BoardPinNrPrim": 4
+    }
+  ]
+}
