@@ -1,11 +1,14 @@
 package devicerecipe
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const recipesBase = "../../test/data/"
 
 type verifyTest struct {
 	di      Ingredients
@@ -59,4 +62,27 @@ func Test_fillEmptyDefaults(t *testing.T) {
 			assert.Equal(ft.want.StoppingDelay, ft.di.StoppingDelay)
 		})
 	}
+}
+
+func TestReadIngredients(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	oldSchema := Schema
+	Schema, _ = filepath.Abs("../../schemas/raildevice.schema.json")
+	defer func() { Schema = oldSchema }()
+	recipe := recipesBase + "devicerecipes/device_test.json"
+	// act
+	ing, err := ReadIngredients(recipe)
+	// assert
+	require.Nil(err)
+	require.NotNil(ing)
+	assert.Equal("D1", ing.Name)
+	assert.Equal("Turnout", ing.Type)
+	assert.Equal("B1", ing.BoardID)
+	assert.Equal(uint8(1), ing.BoardPinNrPrim)
+	assert.Equal(uint8(2), ing.BoardPinNrSec)
+	assert.Equal("0.1s", ing.StartingDelay)
+	assert.Equal("0.15s", ing.StoppingDelay)
+	assert.Equal("D2", ing.Connect)
 }

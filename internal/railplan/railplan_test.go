@@ -30,31 +30,6 @@ func TestReadCookBook(t *testing.T) {
 	assert.Equal(2, len(book.BoardRecipes))
 }
 
-/*
-func ReadCookBook(planFile string) (railPlan CookBook, err error) {
-	planFile, err = jsonrecipe.PrepareAndValidate(schema, planFile)
-	if err != nil {
-		return
-	}
-
-	var jsonFile *os.File
-	var byteValue []byte
-	jsonFile, err = os.Open(planFile)
-	if err == nil {
-		byteValue, err = ioutil.ReadAll(jsonFile)
-	}
-	if err == nil {
-		err = json.Unmarshal(byteValue, &railPlan)
-	}
-	err = errwrap.Wrap(err, jsonFile.Close())
-	if err != nil {
-		err = fmt.Errorf("%s for file %s", err.Error(), planFile)
-	}
-
-	return
-}
-*/
-
 func TestAddBoardRecipe(t *testing.T) {
 	// arrange
 	assert := assert.New(t)
@@ -72,8 +47,7 @@ func TestAddBoardRecipe(t *testing.T) {
 	assert.Equal(0, len(book.DeviceRecipes))
 	require.Equal(1, len(book.BoardRecipes))
 	assert.Equal("B1", book.BoardRecipes[0].Name)
-	assert.Equal("Type2", book.BoardRecipes[0].Type)
-	assert.Equal(uint8(1), book.BoardRecipes[0].ChipDevAddr)
+	// other stuff is tested by "boardrecipe_test.go"
 }
 
 func TestAddDeviceRecipe(t *testing.T) {
@@ -93,11 +67,5 @@ func TestAddDeviceRecipe(t *testing.T) {
 	assert.Equal(0, len(book.BoardRecipes))
 	require.Equal(1, len(book.DeviceRecipes))
 	assert.Equal("D1", book.DeviceRecipes[0].Name)
-	assert.Equal("Turnout", book.DeviceRecipes[0].Type)
-	assert.Equal("B1", book.DeviceRecipes[0].BoardID)
-	assert.Equal(uint8(1), book.DeviceRecipes[0].BoardPinNrPrim)
-	assert.Equal(uint8(2), book.DeviceRecipes[0].BoardPinNrSec)
-	assert.Equal("0.1s", book.DeviceRecipes[0].StartingDelay)
-	assert.Equal("0.15s", book.DeviceRecipes[0].StoppingDelay)
-	assert.Equal("D2", book.DeviceRecipes[0].Connect)
+	// other stuff is tested by "devicerecipe_test.go"
 }

@@ -1,11 +1,14 @@
 package boardrecipe
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const recipesBase = "../../test/data/"
 
 type verifyTest struct {
 	di      Ingredients
@@ -33,4 +36,22 @@ func Test_verify(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReadIngredients(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	oldSchema := Schema
+	Schema, _ = filepath.Abs("../../schemas/board.schema.json")
+	defer func() { Schema = oldSchema }()
+	recipe := recipesBase + "boardrecipes/board_test.json"
+	// act
+	ing, err := ReadIngredients(recipe)
+	// assert
+	require.Nil(err)
+	require.NotNil(ing)
+	assert.Equal("B1", ing.Name)
+	assert.Equal("Type2", ing.Type)
+	assert.Equal(uint8(1), ing.ChipDevAddr)
 }
