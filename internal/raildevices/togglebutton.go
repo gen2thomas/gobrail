@@ -35,7 +35,7 @@ func (b *ToggleButtonDevice) StateChanged(visitor string) (hasChanged bool, err 
 		err = fmt.Errorf("Can't read value from '%s', %w", b.railDeviceName, err)
 		return
 	}
-	// toggle button
+	// toggle button change state for rising edge
 	newState := value > 0
 	if !b.oldState && newState {
 		b.toggleState = !b.toggleState

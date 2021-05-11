@@ -40,7 +40,6 @@ func (o *runableDevice) Run() (err error) {
 	if changed, err = o.connectedInput.StateChanged(o.RailDeviceName()); err != nil {
 		return err
 	}
-	fmt.Println("changed:", changed)
 	if !(changed || o.firstRun) {
 		return
 	}
