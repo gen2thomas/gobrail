@@ -50,6 +50,7 @@ type Ingredients struct {
 	StartingDelay  string `json:"StartingDelay"`
 	StoppingDelay  string `json:"StoppingDelay"`
 	Connect        string `json:"Connect"`
+	Inverse        bool   `json:"Inverse"`
 }
 
 // TODO: can write json single object description from a a plan-object
@@ -110,6 +111,6 @@ func (r *Ingredients) fillEmptyDefaults() {
 }
 
 func (r Ingredients) String() string {
-	return fmt.Sprintf("Name: %s, Type: %s, BoardID: %s, BoardPinNr: %d, BoardPinNrSecond: %d, StartingDelay: %s, StoppingDelay: %s, Connect: %s",
-		r.Name, r.Type, r.BoardID, r.BoardPinNrPrim, r.BoardPinNrSec, r.StartingDelay, r.StoppingDelay, r.Connect)
+	return fmt.Sprintf("Name: %s, Type: %s, BoardID: %s, BoardPinNrPrim: %d, BoardPinNrSecond: %d, StartingDelay: %s, StoppingDelay: %s, Connect: %s, Inverse: %t",
+		r.Name, r.Type, r.BoardID, r.BoardPinNrPrim, r.BoardPinNrSec, r.StartingDelay, r.StoppingDelay, r.Connect, r.Inverse)
 }

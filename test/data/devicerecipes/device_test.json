@@ -6,5 +6,6 @@
   "BoardPinNrSec": 2,
   "StartingDelay": "0.1s",
   "StoppingDelay": "0.15s",
-  "Connect": "D2"
+  "Connect": "D2",
+  "Inverse": true
 }

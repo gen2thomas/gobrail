@@ -38,8 +38,8 @@ type BoardsIOAPIer interface {
 }
 
 type connection struct {
-	name     string
-	inversed bool
+	name    string
+	inverse bool
 }
 
 // RailDeviceAPI describes the API
@@ -101,7 +101,7 @@ func (di *RailDeviceAPI) AddDevice(deviceRecipe devicerecipe.Ingredients) (err e
 		di.runableDevices[railDeviceKey] = runDev
 	}
 	if deviceRecipe.Connect != "" {
-		di.connections[railDeviceKey] = connection{name: getKey(deviceRecipe.Connect), inversed: false}
+		di.connections[railDeviceKey] = connection{name: getKey(deviceRecipe.Connect), inverse: deviceRecipe.Inverse}
 	}
 	di.devices[railDeviceKey] = struct{}{}
 	return
@@ -122,7 +122,7 @@ func (di *RailDeviceAPI) ConnectNow() (err error) {
 		if conDev == nil {
 			return fmt.Errorf("Device with key '%s' to connect with '%s' not found", conn.name, runableDevice.RailDeviceName())
 		}
-		if err = runableDevice.Connect(conDev, conn.inversed); err != nil {
+		if err = runableDevice.Connect(conDev, conn.inverse); err != nil {
 			return
 		}
 	}

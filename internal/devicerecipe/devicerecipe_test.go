@@ -85,4 +85,5 @@ func TestReadIngredients(t *testing.T) {
 	assert.Equal("0.1s", ing.StartingDelay)
 	assert.Equal("0.15s", ing.StoppingDelay)
 	assert.Equal("D2", ing.Connect)
+	assert.Equal(true, ing.Inverse)
 }
