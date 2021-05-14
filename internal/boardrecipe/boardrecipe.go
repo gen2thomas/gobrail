@@ -18,15 +18,19 @@ var Schema = "./schemas/board.schema.json"
 type boardType uint8
 
 const (
-	// Type2 is the board with a single PCA9501 and 4 amplified outputs
-	Type2 boardType = iota
+	// Type2i is the board with a single PCA9501 with 8 inputs
+	Type2i boardType = iota
+	// Type2o is the board with a single PCA9501 with 8 amplified outputs
+	Type2o boardType = iota
+	// Type2io is the board with a single PCA9501 with 4 inputs and 4 amplified outputs
+	Type2io boardType = iota
 	// TypUnknown is for fall back
 	TypUnknown
 )
 
 // TypeMap is the string representation to the underlying "boardType"
 var TypeMap = map[string]boardType{
-	"Type2": Type2, "TypUnknown": TypUnknown,
+	"Type2i": Type2i, "Type2o": Type2o, "Type2io": Type2io, "TypUnknown": TypUnknown,
 }
 
 // Ingredients is a short description to create a new board

@@ -73,14 +73,19 @@ func (bi *BoardsAPI) AddBoard(boardRecipe boardrecipe.Ingredients) (err error) {
 	if _, ok := bi.boards[boardRecipe.Name]; ok {
 		return fmt.Errorf("Board already there '%s'", boardRecipe.Name)
 	}
+	var newBoard Boarder
 	switch boardrecipe.TypeMap[boardRecipe.Type] {
-	case boardrecipe.Type2:
-		newBoard := board.NewBoardType2(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
-		bi.boards[boardRecipe.Name] = newBoard
-		bi.usedPins[boardRecipe.Name] = make(boardpin.PinNumbers)
+	case boardrecipe.Type2i:
+		newBoard = board.NewBoardType2i(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
+	case boardrecipe.Type2o:
+		newBoard = board.NewBoardType2o(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
+	case boardrecipe.Type2io:
+		newBoard = board.NewBoardType2io(bi.adaptor, boardRecipe.ChipDevAddr, boardRecipe.Name)
 	default:
 		return fmt.Errorf("Unknown type '%s'", boardRecipe.Type)
 	}
+	bi.boards[boardRecipe.Name] = newBoard
+	bi.usedPins[boardRecipe.Name] = make(boardpin.PinNumbers)
 	return
 }
 

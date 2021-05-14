@@ -18,7 +18,7 @@ type verifyTest struct {
 func Test_verify(t *testing.T) {
 	var verifyTests = map[string]verifyTest{
 		"WrongType": {di: Ingredients{Type: "WrongType"}, wantErr: "type 'WrongType' is unknown"},
-		"NoError":   {di: Ingredients{Type: "Type2"}},
+		"NoError":   {di: Ingredients{Type: "Type2io"}},
 	}
 	for name, vt := range verifyTests {
 		t.Run(name, func(t *testing.T) {
@@ -52,6 +52,6 @@ func TestReadIngredients(t *testing.T) {
 	require.Nil(err)
 	require.NotNil(ing)
 	assert.Equal("B1", ing.Name)
-	assert.Equal("Type2", ing.Type)
+	assert.Equal("Type2io", ing.Type)
 	assert.Equal(uint8(1), ing.ChipDevAddr)
 }

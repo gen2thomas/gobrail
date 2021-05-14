@@ -33,8 +33,48 @@ import (
 
 const chipID = "PCA9501.GPIO.Mem"
 
-//this is the default io configuration of this board
-var boardPinsDefault = PinsMap{
+//this is the io configuration of Type2I
+var boardPinsType2i = PinsMap{
+	0:  {ChipID: chipID, ChipPinNr: 0, PinType: boardpin.NBinaryR},
+	1:  {ChipID: chipID, ChipPinNr: 1, PinType: boardpin.NBinaryR},
+	2:  {ChipID: chipID, ChipPinNr: 2, PinType: boardpin.NBinaryR},
+	3:  {ChipID: chipID, ChipPinNr: 3, PinType: boardpin.NBinaryR},
+	4:  {ChipID: chipID, ChipPinNr: 4, PinType: boardpin.NBinaryR},
+	5:  {ChipID: chipID, ChipPinNr: 5, PinType: boardpin.NBinaryR},
+	6:  {ChipID: chipID, ChipPinNr: 6, PinType: boardpin.NBinaryR},
+	7:  {ChipID: chipID, ChipPinNr: 7, PinType: boardpin.NBinaryR},
+	8:  {ChipID: chipID, ChipPinNr: 0x01, PinType: boardpin.Memory},
+	9:  {ChipID: chipID, ChipPinNr: 0x02, PinType: boardpin.Memory},
+	10: {ChipID: chipID, ChipPinNr: 0x02, PinType: boardpin.Memory},
+	11: {ChipID: chipID, ChipPinNr: 0x03, PinType: boardpin.Memory},
+	12: {ChipID: chipID, ChipPinNr: 0x04, PinType: boardpin.Memory},
+	13: {ChipID: chipID, ChipPinNr: 0x05, PinType: boardpin.Memory},
+	14: {ChipID: chipID, ChipPinNr: 0x06, PinType: boardpin.Memory},
+	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
+}
+
+//this is the io configuration of Type2O
+var boardPinsType2o = PinsMap{
+	0:  {ChipID: chipID, ChipPinNr: 0, PinType: boardpin.BinaryW},
+	1:  {ChipID: chipID, ChipPinNr: 1, PinType: boardpin.BinaryW},
+	2:  {ChipID: chipID, ChipPinNr: 2, PinType: boardpin.BinaryW},
+	3:  {ChipID: chipID, ChipPinNr: 3, PinType: boardpin.BinaryW},
+	4:  {ChipID: chipID, ChipPinNr: 4, PinType: boardpin.BinaryW},
+	5:  {ChipID: chipID, ChipPinNr: 5, PinType: boardpin.BinaryW},
+	6:  {ChipID: chipID, ChipPinNr: 6, PinType: boardpin.BinaryW},
+	7:  {ChipID: chipID, ChipPinNr: 7, PinType: boardpin.BinaryW},
+	8:  {ChipID: chipID, ChipPinNr: 0x01, PinType: boardpin.Memory},
+	9:  {ChipID: chipID, ChipPinNr: 0x02, PinType: boardpin.Memory},
+	10: {ChipID: chipID, ChipPinNr: 0x02, PinType: boardpin.Memory},
+	11: {ChipID: chipID, ChipPinNr: 0x03, PinType: boardpin.Memory},
+	12: {ChipID: chipID, ChipPinNr: 0x04, PinType: boardpin.Memory},
+	13: {ChipID: chipID, ChipPinNr: 0x05, PinType: boardpin.Memory},
+	14: {ChipID: chipID, ChipPinNr: 0x06, PinType: boardpin.Memory},
+	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
+}
+
+//this is the io configuration of Type2IO
+var boardPinsType2io = PinsMap{
 	0:  {ChipID: chipID, ChipPinNr: 0, PinType: boardpin.BinaryW},
 	1:  {ChipID: chipID, ChipPinNr: 1, PinType: boardpin.BinaryW},
 	2:  {ChipID: chipID, ChipPinNr: 2, PinType: boardpin.BinaryW},
@@ -53,14 +93,35 @@ var boardPinsDefault = PinsMap{
 	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
 }
 
-// NewBoardType2 creates a new board of type 2
-func NewBoardType2(adaptor i2c.Connector, address uint8, name string) *Board {
+// NewBoardType2I creates a new board of type 2 with 8 inputs (negotiated read).
+func NewBoardType2i(adaptor i2c.Connector, address uint8, name string) *Board {
 	chips := map[string]*chip{chipID: {
 		address: address,
 		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
 	}}
 
-	return NewBoard(name, chips, boardPinsDefault)
+	return NewBoard(name, chips, boardPinsType2i)
+}
+
+// NewBoardType2O creates a new board of type 2 with 8 outputs.
+func NewBoardType2o(adaptor i2c.Connector, address uint8, name string) *Board {
+	chips := map[string]*chip{chipID: {
+		address: address,
+		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
+	}}
+
+	return NewBoard(name, chips, boardPinsType2o)
+}
+
+// NewBoardType2IO creates a new board of type 2 with 4 inputs (negotiated read) and 4 outputs.
+// Pin 0..3 are output and 4..7 are input pins.
+func NewBoardType2io(adaptor i2c.Connector, address uint8, name string) *Board {
+	chips := map[string]*chip{chipID: {
+		address: address,
+		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
+	}}
+
+	return NewBoard(name, chips, boardPinsType2io)
 }
 
 func (b *Board) writeGPIO(bPin *boardpin.Pin, val uint8) (err error) {
