@@ -2,12 +2,12 @@
   "BoardRecipes":[
     {
       "Name": "B1",
-      "Type": "Type2",
+      "Type": "Type2o",
       "ChipDevAddr": 1
     },
     {
       "Name": "B2",
-      "Type": "Type2",
+      "Type": "Type2i",
       "ChipDevAddr": 2
     }
   ],

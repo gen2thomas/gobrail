@@ -19,8 +19,10 @@ var Schema = "./schemas/raildevice.schema.json"
 type railDeviceType uint8
 
 const (
+	// TypUnknown is for fall-back (must be the first entry)
+	TypUnknown railDeviceType = iota
 	// Button is a input device with one input
-	Button railDeviceType = iota
+	Button
 	// ToggleButton is a input device with one input
 	ToggleButton
 	// Lamp is a output device with one output
@@ -29,8 +31,6 @@ const (
 	TwoLightsSignal
 	// Turnout is a output device with two outputs
 	Turnout
-	// TypUnknown is for fall-back
-	TypUnknown
 )
 
 // TypeMap is the string representation to the underlying "railDeviceType"
@@ -73,8 +73,7 @@ func ReadIngredients(deviceFile string) (recipe Ingredients, err error) {
 	}
 	err = errwrap.Wrap(err, jsonFile.Close())
 	if err == nil {
-		recipe.fillEmptyDefaults()
-		err = recipe.verify()
+		err = recipe.EnhanceAndVerify()
 	}
 	if err != nil {
 		err = fmt.Errorf("%s for file %s", err.Error(), deviceFile)
@@ -82,13 +81,14 @@ func ReadIngredients(deviceFile string) (recipe Ingredients, err error) {
 	return
 }
 
-// verify is checking that string values are parsable to the corresponding type
-func (r Ingredients) verify() (err error) {
-	// check for type string is known
+// EnhanceAndVerify correct some values and checking that string values are parsable to the corresponding type
+func (r Ingredients) EnhanceAndVerify() (err error) {
+	r.fillEmptyDefaults()
+
 	if _, ok := TypeMap[r.Type]; !ok {
 		err = fmt.Errorf("The given type '%s' is unknown", r.Type)
 	}
-	// check for delays are parsable
+
 	if _, err1 := time.ParseDuration(r.StartingDelay); err1 != nil {
 		err = fmt.Errorf("The given start delay '%s' is not parsable, %w", r.StartingDelay, err)
 	}

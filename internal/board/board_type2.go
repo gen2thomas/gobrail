@@ -33,7 +33,7 @@ import (
 
 const chipID = "PCA9501.GPIO.Mem"
 
-//this is the io configuration of Type2I
+//this is the io configuration of Type2i
 var boardPinsType2i = PinsMap{
 	0:  {ChipID: chipID, ChipPinNr: 0, PinType: boardpin.NBinaryR},
 	1:  {ChipID: chipID, ChipPinNr: 1, PinType: boardpin.NBinaryR},
@@ -53,7 +53,7 @@ var boardPinsType2i = PinsMap{
 	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
 }
 
-//this is the io configuration of Type2O
+//this is the io configuration of Type2o
 var boardPinsType2o = PinsMap{
 	0:  {ChipID: chipID, ChipPinNr: 0, PinType: boardpin.BinaryW},
 	1:  {ChipID: chipID, ChipPinNr: 1, PinType: boardpin.BinaryW},
@@ -73,7 +73,7 @@ var boardPinsType2o = PinsMap{
 	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
 }
 
-//this is the io configuration of Type2IO
+//this is the io configuration of Type2io
 var boardPinsType2io = PinsMap{
 	0:  {ChipID: chipID, ChipPinNr: 0, PinType: boardpin.BinaryW},
 	1:  {ChipID: chipID, ChipPinNr: 1, PinType: boardpin.BinaryW},
@@ -93,27 +93,27 @@ var boardPinsType2io = PinsMap{
 	15: {ChipID: chipID, ChipPinNr: 0x07, PinType: boardpin.Memory},
 }
 
-// NewBoardType2I creates a new board of type 2 with 8 inputs (negotiated read).
+// NewBoardType2i creates a new board of type 2 with 8 inputs (negotiated read).
 func NewBoardType2i(adaptor i2c.Connector, address uint8, name string) *Board {
 	chips := map[string]*chip{chipID: {
 		address: address,
 		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
 	}}
 
-	return NewBoard(name, chips, boardPinsType2i)
+	return NewBoard(name, chips, boardPinsType2i, "Type2i")
 }
 
-// NewBoardType2O creates a new board of type 2 with 8 outputs.
+// NewBoardType2o creates a new board of type 2 with 8 outputs.
 func NewBoardType2o(adaptor i2c.Connector, address uint8, name string) *Board {
 	chips := map[string]*chip{chipID: {
 		address: address,
 		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
 	}}
 
-	return NewBoard(name, chips, boardPinsType2o)
+	return NewBoard(name, chips, boardPinsType2o, "Type2o")
 }
 
-// NewBoardType2IO creates a new board of type 2 with 4 inputs (negotiated read) and 4 outputs.
+// NewBoardType2io creates a new board of type 2 with 4 inputs (negotiated read) and 4 outputs.
 // Pin 0..3 are output and 4..7 are input pins.
 func NewBoardType2io(adaptor i2c.Connector, address uint8, name string) *Board {
 	chips := map[string]*chip{chipID: {
@@ -121,7 +121,7 @@ func NewBoardType2io(adaptor i2c.Connector, address uint8, name string) *Board {
 		driver:  i2c.NewPCA9501Driver(adaptor, i2c.WithAddress(int(address))),
 	}}
 
-	return NewBoard(name, chips, boardPinsType2io)
+	return NewBoard(name, chips, boardPinsType2io, "Type2io")
 }
 
 func (b *Board) writeGPIO(bPin *boardpin.Pin, val uint8) (err error) {

@@ -20,8 +20,8 @@ var schema = "./schemas/plan.schema.json"
 
 // CookBook contains all recipes for boards and rail devices
 type CookBook struct {
-	DeviceRecipes []devicerecipe.Ingredients `json:"DeviceRecipes"`
 	BoardRecipes  []boardrecipe.Ingredients  `json:"BoardRecipes"`
+	DeviceRecipes []devicerecipe.Ingredients `json:"DeviceRecipes"`
 }
 
 // ReadCookBook is parsing json plan to a list of device recipes
@@ -41,10 +41,28 @@ func ReadCookBook(planFile string) (railPlan CookBook, err error) {
 		err = json.Unmarshal(byteValue, &railPlan)
 	}
 	err = errwrap.Wrap(err, jsonFile.Close())
+	if err == nil {
+		err = railPlan.enhanceAndVerify()
+	}
 	if err != nil {
 		err = fmt.Errorf("%s for file %s", err.Error(), planFile)
 	}
 
+	return
+}
+
+// enhanceAndVerify correct some values and checking content
+func (p CookBook) enhanceAndVerify() (err error) {
+	for _, boardRecipe := range p.BoardRecipes {
+		if err := boardRecipe.Verify(); err != nil {
+			return err
+		}
+	}
+	for _, deviceRecipe := range p.DeviceRecipes {
+		if err := deviceRecipe.EnhanceAndVerify(); err != nil {
+			return err
+		}
+	}
 	return
 }
 

@@ -11,7 +11,7 @@ package board
 // Call       : some functions from gobot-adaptor (e.g. digispark)
 //
 // Functions:
-// + most functions ready for each type of board (at the moment only typ2)
+// + most functions ready for each type of board (at the moment only type2)
 // + structure for each chip to configure
 // + structure for each io at board to configure
 // + set/reset all
@@ -46,14 +46,15 @@ type PinsMap map[uint8]*boardpin.Pin
 
 // Board is the configuration of a board
 type Board struct {
-	name  string
-	chips map[string]*chip
-	pins  PinsMap
+	name    string
+	chips   map[string]*chip
+	pins    PinsMap
+	typeTxt string
 }
 
 // NewBoard creates a new board with given objects
-func NewBoard(name string, chips map[string]*chip, pins PinsMap) *Board {
-	return &Board{name: name, chips: chips, pins: pins}
+func NewBoard(name string, chips map[string]*chip, pins PinsMap, typeTxt string) *Board {
+	return &Board{name: name, chips: chips, pins: pins, typeTxt: typeTxt}
 }
 
 // GobotDevices gets all gobot devices of the board
@@ -151,7 +152,7 @@ func (b *Board) ShowBoardConfig() {
 }
 
 func (b *Board) String() string {
-	return fmt.Sprintf("Name: %s, Chips: %d, Pins: %d", b.name, len(b.chips), len(b.pins))
+	return fmt.Sprintf("Name: %s, Type: %s, Chips: %d, Pins: %d", b.name, b.typeTxt, len(b.chips), len(b.pins))
 }
 
 func (b *Board) getBoardPin(boardPinNr uint8) (boardPin *boardpin.Pin, err error) {

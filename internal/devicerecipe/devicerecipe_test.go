@@ -20,7 +20,7 @@ type fillTest struct {
 	want Ingredients
 }
 
-func Test_verify(t *testing.T) {
+func TestEnhanceAndVerify(t *testing.T) {
 	var verifyTests = map[string]verifyTest{
 		"WrongType":       {di: Ingredients{Type: "WrongType"}, wantErr: "type 'WrongType' is unknown"},
 		"WrongStartDelay": {di: Ingredients{Type: "Button", StartingDelay: "WrongStartDelay"}, wantErr: "start delay 'WrongStartDelay' is not parsable"},
@@ -33,7 +33,7 @@ func Test_verify(t *testing.T) {
 			assert := assert.New(t)
 			require := require.New(t)
 			// act
-			err := vt.di.verify()
+			err := vt.di.EnhanceAndVerify()
 			// assert
 			if vt.wantErr == "" {
 				assert.Nil(err)

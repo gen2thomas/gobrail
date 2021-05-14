@@ -17,7 +17,6 @@ func TestReadCookBook(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	cookbook := recipesBase + "plans/plan_2boards_2devices_test.json"
-	//cookbook := recipesBase + "plans/plan.json"
 	oldSchema := schema
 	schema, _ = filepath.Abs("../../schemas/plan.schema.json")
 	defer func() { schema = oldSchema }()
@@ -28,6 +27,32 @@ func TestReadCookBook(t *testing.T) {
 	require.NotNil(book)
 	assert.Equal(2, len(book.DeviceRecipes))
 	assert.Equal(2, len(book.BoardRecipes))
+}
+
+func Test_enhanceAndVerifyBoardErrorGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	book := &CookBook{BoardRecipes: []boardrecipe.Ingredients{{Type: "WrongType"}}}
+	// act
+	err := book.enhanceAndVerify()
+	// assert
+	require.NotNil(err)
+	assert.Contains(err.Error(), "is unknown")
+	// other stuff is tested by "boardrecipe_test.go"
+}
+
+func Test_enhanceAndVerifyDeviceErrorGetsError(t *testing.T) {
+	// arrange
+	assert := assert.New(t)
+	require := require.New(t)
+	book := &CookBook{DeviceRecipes: []devicerecipe.Ingredients{{Type: "WrongType"}}}
+	// act
+	err := book.enhanceAndVerify()
+	// assert
+	require.NotNil(err)
+	assert.Contains(err.Error(), "is unknown")
+	// other stuff is tested by "devicerecipe_test.go"
 }
 
 func TestAddBoardRecipe(t *testing.T) {

@@ -15,7 +15,7 @@ type verifyTest struct {
 	wantErr string
 }
 
-func Test_verify(t *testing.T) {
+func TestVerify(t *testing.T) {
 	var verifyTests = map[string]verifyTest{
 		"WrongType": {di: Ingredients{Type: "WrongType"}, wantErr: "type 'WrongType' is unknown"},
 		"NoError":   {di: Ingredients{Type: "Type2io"}},
@@ -26,7 +26,7 @@ func Test_verify(t *testing.T) {
 			assert := assert.New(t)
 			require := require.New(t)
 			// act
-			err := vt.di.verify()
+			err := vt.di.Verify()
 			// assert
 			if vt.wantErr == "" {
 				assert.Nil(err)
