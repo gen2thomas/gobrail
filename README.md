@@ -21,6 +21,7 @@ Please have a look at folder docs/breadboard_controller/ for using with a breadb
 First run `make` to create all binaries for target systems. Choose the binary for your target from output folder and copy to your target device.
 * gobrail => amd64
 * gobrail_raspi => Raspberry Pi
+* gobrail_tinker => Asus Tinkerboard
 
 Make the file executable at your target device and start it by e.g. `./gobrail_raspi -help` to list command line parameters and its defaults.
 
