@@ -1,6 +1,5 @@
 .PHONY: all run build buildarm5 buildarm7 test style
 
-excluding_vendor := $(shell go list ./... | grep -v /vendor/)
 mainfile := cmd/main_daemon.go
 
 all: build buildarm5 buildarm7
@@ -20,7 +19,7 @@ buildarm7:
 
 # Run tests on all non-vendor directories
 test:
-	go test -v $(excluding_vendor) -cover  -coverprofile=coverage.out
+	go test -v ./... -cover  -coverprofile=coverage.out
 	go tool cover -html=coverage.out -o coverage.html
 
 # Correct format errors amd check linting
