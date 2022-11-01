@@ -11,9 +11,9 @@ import (
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/platforms/digispark"
 
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
-	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 const boardID = "IO_Mem_PCA9501"
@@ -21,7 +21,7 @@ const boardID = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardID,
 	ChipDevAddr: 0x04,
-	Type:   "Type2",
+	Type:        "Type2",
 }
 
 var boardAPI *boardsapi.BoardsAPI
@@ -57,7 +57,7 @@ func main() {
 			if isDefectErr := lamp.IsDefective(); isDefectErr != nil {
 				fmt.Printf("Lamp '%s' is defective\n", lamp.RailDeviceName())
 			} else {
-			  fmt.Printf("Lamp '%s' is working\n", lamp.RailDeviceName())
+				fmt.Printf("Lamp '%s' is working\n", lamp.RailDeviceName())
 			}
 			loopCounter++
 		})

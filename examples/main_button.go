@@ -11,9 +11,9 @@ import (
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/platforms/digispark"
 
+	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 	"github.com/gen2thomas/gobrail/internal/boardsapi"
 	"github.com/gen2thomas/gobrail/internal/raildevices"
-	"github.com/gen2thomas/gobrail/internal/boardrecipe"
 )
 
 // Two buttons are used to switch on and off a lamp.
@@ -28,7 +28,7 @@ const boardID = "IO_Mem_PCA9501"
 var boardRecipePca9501 = boardrecipe.Ingredients{
 	Name:        boardID,
 	ChipDevAddr: 0x04,
-	Type:   "Type2",
+	Type:        "Type2",
 }
 
 var boardAPI *boardsapi.BoardsAPI
@@ -42,8 +42,8 @@ func main() {
 	fmt.Printf("\n------ Init Button ------\n")
 	button := createButton("Taste 1", boardID, 4)
 	togButton := createToggleButton("Taste 2", boardID, 5)
-	lamp1 := createLamp("Strassenlampe 1", boardID, 0 ,raildevices.Timing{})
-	lamp2 := createLamp("Strassenlampe 2", boardID, 1 ,raildevices.Timing{})
+	lamp1 := createLamp("Strassenlampe 1", boardID, 0, raildevices.Timing{})
+	lamp2 := createLamp("Strassenlampe 2", boardID, 1, raildevices.Timing{})
 	fmt.Printf("\n------ Used pins ------\n")
 	uPins := boardAPI.GetUsedPins(boardID)
 	fmt.Println(uPins)
